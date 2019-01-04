@@ -14,9 +14,9 @@ Microservice framework based on native Node.js HTTP module and AMQP protocol. ðŸ
 - [x] Implement gateway class
 - [x] Implement microservice class
 - [x] Add examples
-- [ ] Improve message's data of request
+- [x] Improve message's data of request
 - [ ] Add documentation
 - [ ] Add tests
-- [ ] Improve routing (add support for regex and url params) 
+- [x] Improve routing (add support for regex and url params)
 - [ ] Add support for middlewares chain
 - [ ] Add WebSockets support
