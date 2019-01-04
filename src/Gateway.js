@@ -25,14 +25,16 @@ class Gateway {
             return;
           }
 
-          const { requestId, response } = JSON.parse(message.content.toString());
+          const { response, statusCode, headers, requestId } = JSON.parse(message.content.toString());
           const res = this._requests.get(requestId);
 
           if (!res || !response) {
             return;
           }
 
+          res.writeHead(statusCode, headers);
           res.end(response);
+
           responsesChannel.ack(message);
 
           this._requests.delete(requestId);
@@ -50,7 +52,7 @@ class Gateway {
   async listen(port) {
     await this._startConsumers();
 
-    http
+    return http
       .createServer(async (req, res) => {
         const [path, queryString] = req.url.split('?');
         const query = qs.decode(queryString);
