@@ -11,9 +11,11 @@ app.get('/', (req, res) => {
   res.end('Hello, world!');
 });
 
-app.get('/create', (req, res) => {
+app.get('/users/:id', (req, res) => {
   res.json({
-    ok: true,
+    id: req.params.id,
+    firstName: 'Mikhail',
+    lastName: 'Semin',
   });
 });
 

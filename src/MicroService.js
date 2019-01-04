@@ -1,6 +1,7 @@
 const methods = require('methods');
 const BaseService = require('./BaseService');
 const Response = require('./Response');
+const Route = require('./Route');
 
 class MicroService extends BaseService {
   constructor(options) {
@@ -9,29 +10,31 @@ class MicroService extends BaseService {
     this.routes = [];
   }
 
-  _createRoute(method, path, middleware) {
-    this.routes.push({
-      method,
-      path,
-      middleware,
-    });
+  _createRoute(path, method, middleware) {
+    this.routes.push(
+      new Route(path, method, middleware),
+    );
   }
 
   async _handler({ path, method, payload, requestId }) {
-    const middleware = this.routes.find(item => item.path === path && item.method === method);
+    const route = this.routes.find(item => item.match(path, method));
 
-    if (!middleware) {
+    if (!route) {
       return;
     }
 
     const responsesChannel = await this.createResponsesChannel();
     const response = new Response(responsesChannel, this.responsesQueueName, requestId);
+    const params = route.params(path);
 
-    await middleware.middleware(payload, response);
+    await route.middleware({
+      ...payload,
+      params,
+    }, response);
   }
 
   all(path, middleware) {
-    this._createRoute(undefined, path, middleware);
+    this._createRoute(path, undefined, middleware);
   }
 
   async start() {
@@ -52,7 +55,7 @@ class MicroService extends BaseService {
 
 methods.forEach((method) => {
   MicroService.prototype[method] = function(path, middleware) {
-    this._createRoute(method, path, middleware);
+    this._createRoute(path, method, middleware);
   };
 });
 
