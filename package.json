@@ -1,0 +1,29 @@
+{
+  "name": "micromq",
+  "version": "0.0.2",
+  "description": "Microservice framework based on native nodejs HTTP module and AMQP protocol.",
+  "main": "src/MicroService.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Mikhail Semin",
+  "license": "MIT",
+  "dependencies": {
+    "amqplib": "^0.5.3",
+    "methods": "^1.1.2",
+    "nanoid": "^2.0.0"
+  },
+  "directories": {
+    "example": "examples"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bifot/micromq.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bifot/micromq/issues"
+  },
+  "homepage": "https://github.com/bifot/micromq#readme"
+}
