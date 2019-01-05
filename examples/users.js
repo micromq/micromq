@@ -7,13 +7,10 @@ const app = new MicroMQ({
   },
 });
 
-app.get('/', (req, res) => {
-  res.end('Hello, world!');
-});
-
 app.get('/users/:id', (req, res) => {
   res.json({
     id: req.params.id,
+    time: req.session.time,
     firstName: 'Mikhail',
     lastName: 'Semin',
   });

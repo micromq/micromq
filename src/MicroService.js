@@ -19,12 +19,16 @@ class MicroService extends BaseService {
   async _handler({ path, method, payload, requestId }) {
     const route = this.routes.find(item => item.match(path, method));
 
+    const responsesChannel = await this.createResponsesChannel();
+    const response = new Response(responsesChannel, this.responsesQueueName, requestId);
+
     if (!route) {
+      response.writeHead(404);
+      response.end('Not Found');
+
       return;
     }
 
-    const responsesChannel = await this.createResponsesChannel();
-    const response = new Response(responsesChannel, this.responsesQueueName, requestId);
     const request = {
       ...payload,
       params: route.params(path),

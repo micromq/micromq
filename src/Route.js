@@ -8,7 +8,7 @@ class Route {
     this.middlewares = middlewares.map((middleware, index) => {
       return (req, res) => middleware(req, res, () => this._next(req, res, index));
     });
-    this.regexp = pathToRegExp(path, this._paramNames);
+    this.regexp = path && pathToRegExp(path, this._paramNames);
   }
 
   _next(req, res, index = -1) {

@@ -3,6 +3,7 @@ const nanoid = require('nanoid');
 const qs = require('querystring');
 const parse = require('co-body');
 const BaseService = require('./BaseService');
+const Route = require('./Route');
 
 class Gateway {
   constructor(options) {
@@ -10,6 +11,7 @@ class Gateway {
 
     this._consumersReady = false;
     this._requests = new Map();
+    this._middlewares = [];
     this._microservices = options.microservices.reduce((object, name) => ({
       ...object,
       [name]: new BaseService({
@@ -53,12 +55,14 @@ class Gateway {
     this._consumersReady = true;
   }
 
-  use(handler) {
-    this.handler = handler;
+  use(middleware) {
+    this._middlewares.push(middleware);
   }
 
   async listen(port) {
     await this._startConsumers();
+
+    const route = new Route(undefined, undefined, this._middlewares);
 
     return http
       .createServer(async (req, res) => {
@@ -68,6 +72,7 @@ class Gateway {
 
         req.body = body;
         req.query = query;
+        req.session = {};
 
         res.delegate = async (name) => {
           const microservice = this._microservices[name];
@@ -85,6 +90,7 @@ class Gateway {
               query,
               body,
               headers: req.headers,
+              session: req.session,
             },
             requestId: nanoid(),
           };
@@ -94,7 +100,7 @@ class Gateway {
           requestsChannel.sendToQueue(microservice.requestsQueueName, Buffer.from(JSON.stringify(message)));
         };
 
-        return this.handler(req, res);
+        route._next(req, res);
       })
       .listen(port);
   }
