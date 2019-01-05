@@ -2,13 +2,21 @@ const http = require('http');
 const nanoid = require('nanoid');
 const qs = require('querystring');
 const parse = require('co-body');
+const BaseService = require('./BaseService');
 
 class Gateway {
   constructor(options) {
-    this.microservices = options.microservices;
+    this.options = options;
 
-    this._requests = new Map();
     this._consumersReady = false;
+    this._requests = new Map();
+    this._microservices = options.microservices.reduce((object, name) => ({
+      ...object,
+      [name]: new BaseService({
+        rabbit: options.rabbit,
+        name,
+      }),
+    }), {});
   }
 
   async _startConsumers() {
@@ -17,7 +25,7 @@ class Gateway {
     }
 
     await Promise.all(
-      Object.values(this.microservices).map(async (microservice) => {
+      Object.values(this._microservices).map(async (microservice) => {
         const responsesChannel = await microservice.createResponsesChannel();
 
         responsesChannel.consume(microservice.responsesQueueName, (message) => {
@@ -62,7 +70,7 @@ class Gateway {
         req.query = query;
 
         res.delegate = async (name) => {
-          const microservice = this.microservices[name];
+          const microservice = this._microservices[name];
 
           if (!microservice) {
             throw new Error(`Microservice ${name} not found`);
