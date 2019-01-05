@@ -7,7 +7,20 @@ const app = new Gateway({
   },
 });
 
+app.use(async (req, res, next) => {
+  req.session.time = Date.now();
+
+  await next();
+});
+
 app.use((req, res) => {
+  if (!req.url.startsWith('/users')) {
+    res.writeHead(404);
+    res.end('Not Found');
+
+    return;
+  }
+
   res.delegate('users');
 });
 

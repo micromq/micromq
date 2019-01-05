@@ -7,16 +7,39 @@ const app = new MicroMQ({
   },
 });
 
-app.get('/', (req, res) => {
-  res.end('Hello, world!');
-});
-
 app.get('/users/:id', (req, res) => {
   res.json({
     id: req.params.id,
+    time: req.session.time,
     firstName: 'Mikhail',
     lastName: 'Semin',
   });
 });
+
+app.get(
+  '/users/:id/comments',
+  async (req, res, next) => {
+    if (+req.params.id !== 1) {
+      res.writeHead(401);
+      res.json({ error: 'Access Denied' });
+
+      return;
+    }
+
+    await next();
+  },
+  (req, res) => {
+    res.json([
+      {
+        id: 1,
+        text: 'Thr best Node.js articles',
+      },
+      {
+        id: 2,
+        text: 'My first job',
+      },
+    ]);
+  },
+);
 
 app.start();

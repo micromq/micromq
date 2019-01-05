@@ -18,5 +18,5 @@ Microservice framework based on native Node.js HTTP module and AMQP protocol. ðŸ
 - [ ] Add documentation
 - [x] Add tests
 - [x] Improve routing (add support for regex and url params)
-- [ ] Add support for middlewares chain
+- [x] Add support for middlewares chain
 - [ ] Add WebSockets support

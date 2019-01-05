@@ -10,31 +10,35 @@ class MicroService extends BaseService {
     this.routes = [];
   }
 
-  _createRoute(path, method, middleware) {
+  _createRoute(path, method, ...middlewares) {
     this.routes.push(
-      new Route(path, method, middleware),
+      new Route(path, method, middlewares),
     );
   }
 
   async _handler({ path, method, payload, requestId }) {
     const route = this.routes.find(item => item.match(path, method));
 
+    const responsesChannel = await this.createResponsesChannel();
+    const response = new Response(responsesChannel, this.responsesQueueName, requestId);
+
     if (!route) {
+      response.writeHead(404);
+      response.end('Not Found');
+
       return;
     }
 
-    const responsesChannel = await this.createResponsesChannel();
-    const response = new Response(responsesChannel, this.responsesQueueName, requestId);
-    const params = route.params(path);
-
-    await route.middleware({
+    const request = {
       ...payload,
-      params,
-    }, response);
+      params: route.params(path),
+    };
+
+    await route._next(request, response);
   }
 
-  all(path, middleware) {
-    this._createRoute(path, undefined, middleware);
+  all(path, ...middlewares) {
+    this._createRoute(path, undefined, ...middlewares);
   }
 
   async start() {
@@ -54,8 +58,8 @@ class MicroService extends BaseService {
 
 
 methods.forEach((method) => {
-  MicroService.prototype[method] = function(path, middleware) {
-    this._createRoute(path, method, middleware);
+  MicroService.prototype[method] = function(path, ...middlewares) {
+    this._createRoute(path, method, ...middlewares);
   };
 });
 
