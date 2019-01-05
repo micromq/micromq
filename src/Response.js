@@ -17,7 +17,7 @@ class Response {
     })));
   }
 
-  writeHead(statusCode, headers) {
+  writeHead(statusCode, headers = {}) {
     this.statusCode = statusCode;
     this.headers = headers;
   }
