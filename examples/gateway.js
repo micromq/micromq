@@ -1,9 +1,9 @@
 const Gateway = require('../gateway');
-const users = require('./users');
 
 const app = new Gateway({
-  microservices: {
-    users,
+  microservices: ['users'],
+  rabbit: {
+    url: process.env.RABBIT_URL,
   },
 });
 

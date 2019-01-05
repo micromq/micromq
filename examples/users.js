@@ -3,7 +3,7 @@ const MicroMQ = require('../src/MicroService');
 const app = new MicroMQ({
   name: 'users',
   rabbit: {
-    url: 'amqp://localhost',
+    url: process.env.RABBIT_URL,
   },
 });
 
@@ -20,5 +20,3 @@ app.get('/users/:id', (req, res) => {
 });
 
 app.start();
-
-module.exports = app;
