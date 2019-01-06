@@ -1,6 +1,6 @@
 {
   "name": "micromq",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Microservice framework based on native nodejs HTTP module and AMQP protocol.",
   "main": "src/MicroService.js",
   "scripts": {

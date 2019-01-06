@@ -10,6 +10,13 @@ class BaseService {
   async _createConnection() {
     if (!this._connection) {
       this._connection = await amqplib.connect(this.options.rabbit.url);
+
+      ['error', 'close'].forEach((event) => {
+        this._connection.on(event, () => {
+          this._connection = null;
+          this._createConnection();
+        });
+      });
     }
 
     return this._connection;
