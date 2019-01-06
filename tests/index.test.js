@@ -25,7 +25,7 @@ describe('gateway & microservice', async () => {
     expect(body).to.be.deep.equal([
       {
         id: 1,
-        text: 'Thr best Node.js articles',
+        text: 'The best Node.js articles',
       },
       {
         id: 2,

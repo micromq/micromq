@@ -32,7 +32,7 @@ app.get(
     res.json([
       {
         id: 1,
-        text: 'Thr best Node.js articles',
+        text: 'The best Node.js articles',
       },
       {
         id: 2,
