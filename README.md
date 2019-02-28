@@ -140,6 +140,9 @@ app.start();
 - [x] Improve routing (add support for regex and url params)
 - [x] Add support for middlewares chain
 - [ ] Add WebSockets support
+- [ ] Add RPC-actions
+- [ ] Add feature to set timeout for requests via options
+- [ ] Add feature to set consumers count via gateway/microservice options
 
 ## License
 
