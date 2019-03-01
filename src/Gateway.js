@@ -69,7 +69,7 @@ class Gateway {
         const requestsChannel = await microservice.createResponsesChannel();
 
         const message = {
-          path: req.originalUrl.split('?')[0],
+          path: (req.originalUrl || req.url).split('?')[0],
           method: req.method.toLowerCase(),
           payload: {
             query: req.query,
@@ -107,7 +107,7 @@ class Gateway {
         req.session = {};
 
         // create helper
-        this.middleware(req, res, () => {});
+        this.middleware()(req, res, () => {});
 
         route._next(req, res);
       })
