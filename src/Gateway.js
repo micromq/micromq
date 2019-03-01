@@ -57,6 +57,36 @@ class Gateway {
     this._middlewares.push(middleware);
   }
 
+  middleware(req, res, next) {
+    res.delegate = async (name) => {
+      const microservice = this._microservices[name];
+
+      if (!microservice) {
+        throw new Error(`Microservice ${name} not found`);
+      }
+
+      const requestsChannel = await microservice.createResponsesChannel();
+
+      const message = {
+        path: req.url.split('?')[0],
+        method: req.method.toLowerCase(),
+        payload: {
+          query: req.query,
+          body: req.body,
+          headers: req.headers,
+          session: req.session,
+        },
+        requestId: nanoid(),
+      };
+
+      this._requests.set(message.requestId, res);
+
+      requestsChannel.sendToQueue(microservice.requestsQueueName, Buffer.from(JSON.stringify(message)));
+    };
+
+    return next();
+  }
+
   async listen(port) {
     await this._startConsumers();
 
@@ -64,7 +94,7 @@ class Gateway {
 
     return http
       .createServer(async (req, res) => {
-        const [path, queryString] = req.url.split('?');
+        const [, queryString] = req.url.split('?');
         const query = qs.decode(queryString);
         const body = await parse.json(req);
 
@@ -72,31 +102,8 @@ class Gateway {
         req.query = query;
         req.session = {};
 
-        res.delegate = async (name) => {
-          const microservice = this._microservices[name];
-
-          if (!microservice) {
-            throw new Error(`Microservice ${name} not found`);
-          }
-
-          const requestsChannel = await microservice.createResponsesChannel();
-
-          const message = {
-            path,
-            method: req.method.toLowerCase(),
-            payload: {
-              query,
-              body,
-              headers: req.headers,
-              session: req.session,
-            },
-            requestId: nanoid(),
-          };
-
-          this._requests.set(message.requestId, res);
-
-          requestsChannel.sendToQueue(microservice.requestsQueueName, Buffer.from(JSON.stringify(message)));
-        };
+        // create helper
+        this.middleware(req, res, () => {});
 
         route._next(req, res);
       })
