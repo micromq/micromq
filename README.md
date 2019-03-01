@@ -139,6 +139,7 @@ app.start();
 - [x] Add tests
 - [x] Improve routing (add support for regex and url params)
 - [x] Add support for middlewares chain
+- [x] Add express middleware
 - [ ] Add WebSockets support
 - [ ] Add RPC-actions
 - [ ] Add feature to set timeout for requests via options
