@@ -69,7 +69,7 @@ class Gateway {
         const requestsChannel = await microservice.createResponsesChannel();
 
         const message = {
-          path: req.url.split('?')[0],
+          path: req.originalUrl.split('?')[0],
           method: req.method.toLowerCase(),
           payload: {
             query: req.query,
