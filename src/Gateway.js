@@ -20,10 +20,6 @@ class Gateway {
   }
 
   async _startConsumers() {
-    if (this._consumersReady) {
-      return;
-    }
-
     await Promise.all(
       Object.values(this._microservices).map(async (microservice) => {
         const responsesChannel = await microservice.createResponsesChannel();
@@ -57,38 +53,46 @@ class Gateway {
     this._middlewares.push(middleware);
   }
 
-  middleware(req, res, next) {
-    res.delegate = async (name) => {
-      const microservice = this._microservices[name];
-
-      if (!microservice) {
-        throw new Error(`Microservice ${name} not found`);
+  middleware() {
+    return async (req, res, next) => {
+      if (!this._consumersReady) {
+        await this._startConsumers();
       }
 
-      const requestsChannel = await microservice.createResponsesChannel();
+      res.delegate = async (name) => {
+        const microservice = this._microservices[name];
 
-      const message = {
-        path: req.url.split('?')[0],
-        method: req.method.toLowerCase(),
-        payload: {
-          query: req.query,
-          body: req.body,
-          headers: req.headers,
-          session: req.session,
-        },
-        requestId: nanoid(),
+        if (!microservice) {
+          throw new Error(`Microservice ${name} not found`);
+        }
+
+        const requestsChannel = await microservice.createResponsesChannel();
+
+        const message = {
+          path: req.url.split('?')[0],
+          method: req.method.toLowerCase(),
+          payload: {
+            query: req.query,
+            body: req.body,
+            headers: req.headers,
+            session: req.session,
+          },
+          requestId: nanoid(),
+        };
+
+        this._requests.set(message.requestId, res);
+
+        requestsChannel.sendToQueue(microservice.requestsQueueName, Buffer.from(JSON.stringify(message)));
       };
 
-      this._requests.set(message.requestId, res);
-
-      requestsChannel.sendToQueue(microservice.requestsQueueName, Buffer.from(JSON.stringify(message)));
+      return next();
     };
-
-    return next();
   }
 
   async listen(port) {
-    await this._startConsumers();
+    if (!this._consumersReady) {
+      await this._startConsumers();
+    }
 
     const route = new Route(undefined, undefined, this._middlewares);
 
