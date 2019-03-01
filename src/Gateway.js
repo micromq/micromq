@@ -7,8 +7,6 @@ const Route = require('./Route');
 
 class Gateway {
   constructor(options) {
-    this.options = options;
-
     this._consumersReady = false;
     this._requests = new Map();
     this._middlewares = [];
