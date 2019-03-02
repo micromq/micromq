@@ -7,6 +7,14 @@ const app = new Gateway({
   },
 });
 
+app.action('authorize', (meta) => {
+  if (meta.userId !== 1) {
+    return [400, { error: 'Access denied' }];
+  }
+
+  return { isAuthorized: true };
+});
+
 app.use(async (req, res, next) => {
   req.session.time = Date.now();
 

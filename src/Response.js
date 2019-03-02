@@ -31,7 +31,7 @@ class Response {
       ...this.headers,
       'Content-Type': 'application/json',
     });
-    this._send(JSON.stringify(response));
+    this._send(response);
   }
 }
 
