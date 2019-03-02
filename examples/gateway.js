@@ -1,6 +1,9 @@
 const Gateway = require('../gateway');
 
 const app = new Gateway({
+  requests: {
+    timeout: 10000,
+  },
   microservices: ['users'],
   rabbit: {
     url: process.env.RABBIT_URL,

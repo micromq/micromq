@@ -5,8 +5,21 @@ const parse = require('co-body');
 const BaseService = require('./BaseService');
 const Route = require('./Route');
 
+const RESPONSES = {
+  TIMED_OUT: JSON.stringify({
+    error: 'Timed out',
+  }),
+};
+
 class Gateway {
   constructor(options) {
+    this.options = {
+      requests: {
+        timeout: 10000,
+      },
+      ...options,
+    };
+
     this._consumersReady = false;
     this._requests = new Map();
     this._actions = new Map();
@@ -49,14 +62,18 @@ class Gateway {
           let { statusCode, response } = json;
 
           const { headers, requestId } = json;
-          const res = this._requests.get(requestId);
+          const request = this._requests.get(requestId);
 
           // response or client not found
-          if (!res || !response) {
+          if (!request || !response) {
             responsesChannel.ack(message);
 
             return;
           }
+
+          const { timer, res } = request;
+
+          clearTimeout(timer);
 
           if (typeof response === 'object' && typeof response.server === 'object' && response.server.action) {
             const { action, meta } = response.server;
@@ -131,7 +148,15 @@ class Gateway {
           requestId: nanoid(),
         };
 
-        this._requests.set(message.requestId, res);
+        this._requests.set(message.requestId, {
+          timer: setTimeout(() => {
+            res.writeHead(408, { 'Content-Type': 'application/json' });
+            res.end(RESPONSES.TIMED_OUT);
+
+            this._requests.delete(message.requestId);
+          }, this.options.requests.timeout),
+          res,
+        });
 
         requestsChannel.sendToQueue(microservice.requestsQueueName, Buffer.from(JSON.stringify(message)));
       };
