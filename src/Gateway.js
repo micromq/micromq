@@ -25,14 +25,33 @@ class Gateway {
         const responsesChannel = await microservice.createResponsesChannel();
 
         responsesChannel.consume(microservice.responsesQueueName, (message) => {
-          if (!message) {
+          // empty message
+          if (!message || !message.content.toString()) {
             return;
           }
 
-          const { response, statusCode, headers, requestId } = JSON.parse(message.content.toString());
+          let json;
+
+          try {
+            json = JSON.parse(message.content.toString());
+          } catch (err) {
+            console.error('Failed to parse response', err);
+          }
+
+          // empty or invalid response
+          if (!json) {
+            responsesChannel.ack(message);
+
+            return;
+          }
+
+          const { response, statusCode, headers, requestId } = json;
           const res = this._requests.get(requestId);
 
+          // response or client not found
           if (!res || !response) {
+            responsesChannel.ack(message);
+
             return;
           }
 
