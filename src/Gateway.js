@@ -58,7 +58,7 @@ class Gateway {
             return;
           }
 
-          if (typeof response === 'object' && response.server) {
+          if (typeof response === 'object' && typeof response.server === 'object' && response.server.action) {
             const { action, meta } = response.server;
             const handler = this._actions.get(action);
 
