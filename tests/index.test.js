@@ -42,4 +42,26 @@ describe('gateway & microservice', async () => {
       error: 'Access Denied',
     });
   });
+
+  it('should trigger rpc-action (negative case)', async () => {
+    const { status, body } = await request
+      .post('/users/login')
+      .send({ userId: 123 });
+
+    expect(status).to.be.equal(400);
+    expect(body).to.be.deep.equal({
+      error: 'Access denied',
+    });
+  });
+
+  it('should trigger rpc-action (positive case)', async () => {
+    const { status, body } = await request
+      .post('/users/login')
+      .send({ userId: 1 });
+
+    expect(status).to.be.equal(200);
+    expect(body).to.be.deep.equal({
+      isAuthorized: true,
+    });
+  });
 });

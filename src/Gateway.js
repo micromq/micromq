@@ -9,6 +9,7 @@ class Gateway {
   constructor(options) {
     this._consumersReady = false;
     this._requests = new Map();
+    this._actions = new Map();
     this._middlewares = [];
     this._microservices = options.microservices.reduce((object, name) => ({
       ...object,
@@ -24,7 +25,7 @@ class Gateway {
       Object.values(this._microservices).map(async (microservice) => {
         const responsesChannel = await microservice.createResponsesChannel();
 
-        responsesChannel.consume(microservice.responsesQueueName, (message) => {
+        responsesChannel.consume(microservice.responsesQueueName, async (message) => {
           // empty message
           if (!message || !message.content.toString()) {
             return;
@@ -45,7 +46,9 @@ class Gateway {
             return;
           }
 
-          const { response, statusCode, headers, requestId } = json;
+          let { statusCode, response } = json;
+
+          const { headers, requestId } = json;
           const res = this._requests.get(requestId);
 
           // response or client not found
@@ -55,8 +58,29 @@ class Gateway {
             return;
           }
 
+          if (typeof response === 'object' && typeof response.server === 'object' && response.server.action) {
+            const { action, meta } = response.server;
+            const handler = this._actions.get(action);
+
+            if (!handler) {
+              console.warn(`Action "${action}" not found`, response);
+
+              return;
+            }
+
+            const result = await handler(meta);
+
+            if (Array.isArray(result) && result.length === 2) {
+              statusCode = result[0];
+              response = result[1];
+            } else {
+              statusCode = 200;
+              response = result;
+            }
+          }
+
           res.writeHead(statusCode, headers);
-          res.end(response);
+          res.end(typeof response === 'object' ? JSON.stringify(response) : response);
 
           responsesChannel.ack(message);
 
@@ -70,6 +94,14 @@ class Gateway {
 
   use(middleware) {
     this._middlewares.push(middleware);
+
+    return this;
+  }
+
+  action(name, handler) {
+    this._actions.set(name, handler);
+
+    return this;
   }
 
   middleware() {

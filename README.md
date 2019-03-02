@@ -141,7 +141,7 @@ app.start();
 - [x] Add support for middlewares chain
 - [x] Add express middleware
 - [ ] Add WebSockets support
-- [ ] Add RPC-actions
+- [x] Add RPC-actions
 - [ ] Add feature to set timeout for requests via options
 - [ ] Add feature to set consumers count via gateway/microservice options
 

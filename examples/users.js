@@ -7,6 +7,17 @@ const app = new MicroMQ({
   },
 });
 
+app.post('/users/login', (req, res) => {
+  res.json({
+    server: {
+      action: 'authorize',
+      meta: {
+        userId: req.body.userId,
+      },
+    },
+  });
+});
+
 app.get('/users/:id', (req, res) => {
   res.json({
     id: req.params.id,
