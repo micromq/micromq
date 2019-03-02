@@ -53,4 +53,19 @@ app.get(
   },
 );
 
+app.get('/users/:id/posts', (req, res) => {
+  setTimeout(() => {
+    res.json([
+      {
+        id: 1,
+        text: 'Event loop latency',
+      },
+      {
+        id: 2,
+        text: 'HR recommendations',
+      },
+    ]);
+  }, 15000);
+});
+
 app.start();

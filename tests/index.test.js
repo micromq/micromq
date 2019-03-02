@@ -64,4 +64,13 @@ describe('gateway & microservice', async () => {
       isAuthorized: true,
     });
   });
+
+  it('should send timed out error', async () => {
+    const { status, body } = await request.get('/users/1/posts');
+
+    expect(status).to.be.equal(408);
+    expect(body).to.be.deep.equal({
+      error: 'Timed out',
+    });
+  });
 });
