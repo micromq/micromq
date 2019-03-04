@@ -8,15 +8,27 @@ class MicroService extends BaseService {
     super(options);
 
     this.routes = [];
+    this.middlewares = [];
   }
 
   _createRoute(path, method, ...middlewares) {
+    if (Array.isArray(path)) {
+      path.forEach((path) => {
+        this.routes.push(
+          new Route(path, method, middlewares),
+        );
+      });
+
+      return;
+    }
+
     this.routes.push(
       new Route(path, method, middlewares),
     );
   }
 
   async _handler({ path, method, payload, requestId }) {
+    const middlewares = new Route(undefined, undefined, this.middlewares);
     const route = this.routes.find(item => item.match(path, method));
 
     const responsesChannel = await this.createResponsesChannel();
@@ -34,11 +46,16 @@ class MicroService extends BaseService {
       params: route.params(path),
     };
 
+    await middlewares._next(request, response);
     await route._next(request, response);
   }
 
   all(path, ...middlewares) {
     this._createRoute(path, undefined, ...middlewares);
+  }
+
+  use(...middlewares) {
+    this.middlewares.push(...middlewares);
   }
 
   async start() {
