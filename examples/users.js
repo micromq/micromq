@@ -7,6 +7,12 @@ const app = new MicroMQ({
   },
 });
 
+app.use(async (req, res, next) => {
+  req.session.timestamp = Date.now();
+
+  await next();
+});
+
 app.post('/users/login', (req, res) => {
   res.json({
     server: {
@@ -18,42 +24,15 @@ app.post('/users/login', (req, res) => {
   });
 });
 
-app.get('/users/:id', (req, res) => {
+app.get('/users/me', (req, res) => {
   res.json({
-    id: req.params.id,
-    time: req.session.time,
     firstName: 'Mikhail',
     lastName: 'Semin',
+    timestamp: req.session.timestamp,
   });
 });
 
-app.get(
-  '/users/:id/comments',
-  async (req, res, next) => {
-    if (+req.params.id !== 1) {
-      res.writeHead(401);
-      res.json({ error: 'Access Denied' });
-
-      return;
-    }
-
-    await next();
-  },
-  (req, res) => {
-    res.json([
-      {
-        id: 1,
-        text: 'The best Node.js articles',
-      },
-      {
-        id: 2,
-        text: 'My first job',
-      },
-    ]);
-  },
-);
-
-app.get('/users/:id/posts', (req, res) => {
+app.get('/users/me/posts', (req, res) => {
   setTimeout(() => {
     res.json([
       {

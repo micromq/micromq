@@ -18,12 +18,6 @@ app.action('authorize', (meta) => {
   return { isAuthorized: true };
 });
 
-app.use(async (req, res, next) => {
-  req.session.time = Date.now();
-
-  await next();
-});
-
 app.use((req, res) => {
   if (!req.url.startsWith('/users')) {
     res.writeHead(404);
