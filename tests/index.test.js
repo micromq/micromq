@@ -10,7 +10,9 @@ const request = chai.request(`http://localhost:${process.env.PORT}`);
 
 describe('gateway & microservice', async () => {
   it('should send response', async () => {
-    const { status, body } = await request.get('/users/me');
+    const { status, body } = await request
+      .get('/users/me')
+      .set('Cookie', 'id=1');
 
     expect(status).to.be.equal(200);
     expect(body).to.be.jsonSchema({
@@ -21,6 +23,9 @@ describe('gateway & microservice', async () => {
         'timestamp',
       ],
       properties: {
+        id: {
+          type: 'number',
+        },
         firstName: {
           type: 'string',
         },
