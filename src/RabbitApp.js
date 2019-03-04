@@ -1,8 +1,9 @@
 const amqplib = require('amqplib');
 
-class BaseService {
+class RabbitApp {
   constructor(options) {
     this.options = options;
+
     this.requestsQueueName = `${this.options.name}:requests`;
     this.responsesQueueName = `${this.options.name}:responses`;
   }
@@ -47,4 +48,4 @@ class BaseService {
   }
 }
 
-module.exports = BaseService;
+module.exports = RabbitApp;
