@@ -1,6 +1,7 @@
 const http = require('http');
 const nanoid = require('nanoid');
 const qs = require('querystring');
+const cookieParser = require('cookie-parser');
 const parse = require('co-body');
 const RabbitApp = require('./RabbitApp');
 const BaseApp = require('./BaseApp');
@@ -31,7 +32,7 @@ class Gateway extends BaseApp {
       }),
     }), {});
 
-    // create 1st middleware
+    this.use(cookieParser());
     this.use(async (req, res, next) => {
       const [, queryString] = req.url.split('?');
       const query = qs.decode(queryString);
@@ -148,6 +149,7 @@ class Gateway extends BaseApp {
           query: req.query,
           body: req.body,
           headers: req.headers,
+          cookies: req.cookies,
           session: req.session,
           requestId: nanoid(),
         };

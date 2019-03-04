@@ -26,6 +26,7 @@ app.post('/users/login', (req, res) => {
 
 app.get('/users/me', (req, res) => {
   res.json({
+    id: +req.cookies.id,
     firstName: 'Mikhail',
     lastName: 'Semin',
     timestamp: req.session.timestamp,
