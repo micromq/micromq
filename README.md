@@ -144,7 +144,7 @@ app.start();
 - [x] Add cookies support
 - [x] Add RPC-actions
 - [x] Add feature to set timeout for requests via options
-- [ ] Add feature to set consumers count via gateway/microservice options
+- [x] Add cluster support
 
 ## License
 
