@@ -2,8 +2,8 @@ const http = require('http');
 const nanoid = require('nanoid');
 const qs = require('querystring');
 const parse = require('co-body');
-const BaseService = require('./BaseService');
-const Route = require('./Route');
+const RabbitApp = require('./RabbitApp');
+const BaseApp = require('./BaseApp');
 
 const RESPONSES = {
   TIMED_OUT: JSON.stringify({
@@ -11,26 +11,38 @@ const RESPONSES = {
   }),
 };
 
-class Gateway {
+class Gateway extends BaseApp {
   constructor(options) {
-    this.options = {
+    super({
       requests: {
         timeout: 10000,
       },
       ...options,
-    };
+    });
 
     this._consumersReady = false;
     this._requests = new Map();
     this._actions = new Map();
-    this._middlewares = [];
     this._microservices = options.microservices.reduce((object, name) => ({
       ...object,
-      [name]: new BaseService({
+      [name]: new RabbitApp({
         rabbit: options.rabbit,
         name,
       }),
     }), {});
+
+    // create 1st middleware
+    this.use(async (req, res, next) => {
+      const [, queryString] = req.url.split('?');
+      const query = qs.decode(queryString);
+      const body = await parse.json(req);
+
+      req.body = body;
+      req.query = query;
+      req.session = {};
+
+      await this.middleware()(req, res, next);
+    });
   }
 
   async _startConsumers() {
@@ -109,12 +121,6 @@ class Gateway {
     this._consumersReady = true;
   }
 
-  use(middleware) {
-    this._middlewares.push(middleware);
-
-    return this;
-  }
-
   action(name, handler) {
     this._actions.set(name, handler);
 
@@ -139,12 +145,10 @@ class Gateway {
         const message = {
           path: (req.originalUrl || req.url).split('?')[0],
           method: req.method.toLowerCase(),
-          payload: {
-            query: req.query,
-            body: req.body,
-            headers: req.headers,
-            session: req.session,
-          },
+          query: req.query,
+          body: req.body,
+          headers: req.headers,
+          session: req.session,
           requestId: nanoid(),
         };
 
@@ -170,23 +174,8 @@ class Gateway {
       await this._startConsumers();
     }
 
-    const route = new Route(undefined, undefined, this._middlewares);
-
     return http
-      .createServer(async (req, res) => {
-        const [, queryString] = req.url.split('?');
-        const query = qs.decode(queryString);
-        const body = await parse.json(req);
-
-        req.body = body;
-        req.query = query;
-        req.session = {};
-
-        // create helper
-        this.middleware()(req, res, () => {});
-
-        route._next(req, res);
-      })
+      .createServer((req, res) => this._next(req, res))
       .listen(port);
   }
 }
