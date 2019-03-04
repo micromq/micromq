@@ -140,7 +140,7 @@ class Gateway extends BaseApp {
           throw new Error(`Microservice ${name} not found`);
         }
 
-        const requestsChannel = await microservice.createResponsesChannel();
+        const requestsChannel = await microservice.createRequestsChannel();
 
         const message = {
           path: (req.originalUrl || req.url).split('?')[0],
