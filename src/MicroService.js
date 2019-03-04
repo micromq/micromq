@@ -6,9 +6,9 @@ class MicroService extends BaseApp {
     super(options);
   }
 
-  async _handler({ requestId, ...request }) {
+  async _handler({ requestId, queue, ...request }) {
     const responsesChannel = await this.createResponsesChannel();
-    const response = new Response(responsesChannel, this.responsesQueueName, requestId);
+    const response = new Response(responsesChannel, queue, requestId);
 
     return this._next(request, response);
   }

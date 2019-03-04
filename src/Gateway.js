@@ -49,9 +49,13 @@ class Gateway extends BaseApp {
   async _startConsumers() {
     await Promise.all(
       Object.values(this._microservices).map(async (microservice) => {
-        const responsesChannel = await microservice.createResponsesChannel();
+        const connection = await microservice._createConnection();
+        const channel = await connection.createChannel();
+        const queueName = `${microservice.responsesQueueName}:${process.env.PORT}`;
 
-        responsesChannel.consume(microservice.responsesQueueName, async (message) => {
+        await channel.assertQueue(queueName);
+
+        channel.consume(queueName, async (message) => {
           // empty message
           if (!message || !message.content.toString()) {
             return;
@@ -67,7 +71,7 @@ class Gateway extends BaseApp {
 
           // empty or invalid response
           if (!json) {
-            responsesChannel.ack(message);
+            channel.ack(message);
 
             return;
           }
@@ -79,7 +83,7 @@ class Gateway extends BaseApp {
 
           // response or client not found
           if (!request || !response) {
-            responsesChannel.ack(message);
+            channel.ack(message);
 
             return;
           }
@@ -112,7 +116,7 @@ class Gateway extends BaseApp {
           res.writeHead(statusCode, headers);
           res.end(typeof response === 'object' ? JSON.stringify(response) : response);
 
-          responsesChannel.ack(message);
+          channel.ack(message);
 
           this._requests.delete(requestId);
         });
@@ -152,6 +156,7 @@ class Gateway extends BaseApp {
           cookies: req.cookies,
           session: req.session,
           requestId: nanoid(),
+          queue: `${microservice.responsesQueueName}:${process.env.PORT}`,
         };
 
         this._requests.set(message.requestId, {
