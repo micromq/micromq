@@ -57,7 +57,7 @@ app.get('/users/me/posts', (req, res) => {
         text: 'HR recommendations',
       },
     ]);
-  }, 15000);
+  }, 5000);
 });
 
 app.start();

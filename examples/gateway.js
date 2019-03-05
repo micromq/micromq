@@ -2,7 +2,7 @@ const Gateway = require('../gateway');
 
 const app = new Gateway({
   requests: {
-    timeout: 10000,
+    timeout: 3000,
   },
   microservices: ['users', 'balances'],
   rabbit: {
