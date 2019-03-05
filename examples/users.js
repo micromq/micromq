@@ -27,8 +27,7 @@ app.post('/users/login', (req, res) => {
 app.get('/users/me', async (req, res) => {
   const  { id } = req.cookies;
 
-  const balance = await app.ask({
-    microservice: 'balances',
+  const { response } = await app.ask('balances', {
     path: '/balances/me',
     method: 'get',
     query: {
@@ -38,7 +37,7 @@ app.get('/users/me', async (req, res) => {
 
   res.json({
     id: +id,
-    balance: balance.amount,
+    balance: response.amount,
     firstName: 'Mikhail',
     lastName: 'Semin',
     timestamp: req.session.timestamp,

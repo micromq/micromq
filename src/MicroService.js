@@ -18,16 +18,16 @@ class MicroService extends BaseApp {
     return this._next(request, response);
   }
 
-  async ask(query) {
+  async ask(name, query) {
     let _resolve;
     let _reject;
 
-    let { microservice, channel, queueName } = this._microservices.get(query.microservice) || {};
+    let { microservice, channel, queueName } = this._microservices.get(name) || {};
 
     if (!microservice) {
       microservice = new RabbitApp({
         rabbit: this.options.rabbit,
-        name: query.microservice,
+        name,
       });
 
       const connection = await microservice._createConnection();
@@ -47,9 +47,9 @@ class MicroService extends BaseApp {
         const { resolve, reject } = this._requests.get(requestId);
 
         if (statusCode >= 400) {
-          reject(response);
+          reject({ status: statusCode, response });
         } else {
-          resolve(response);
+          resolve({ status: statusCode, response });
         }
 
         this._requests.delete(requestId);
