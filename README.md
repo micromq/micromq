@@ -2,12 +2,12 @@
 
 # micromq
 
-Microservice framework based on native Node.js HTTP module and AMQP protocol. 🔬 🐇
+Microservice framework based on native Node.js HTTP module and AMQP protocol (express integration as feature). 🔬 🐇
 
 ## Install
 
 ```sh
-$ npm i micomq -S
+$ npm i micomq
 ```
 
 ## Tests
@@ -19,134 +19,234 @@ $ RABBIT_URL=amqp://localhost PORT=3000 node examples/gateway.js &
 $ PORT=3000 npm test
 ```
 
-## Usage
+## API
 
-Gateway:
+### Gateway
+
+#### .constructor(options)
+
+- `options` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
+  - `microservices` <Array<[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>> Microservices for connect.
+  - `rabbit` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
+    - `url` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> RabbitMQ connection url.
+  - `requests` <[?Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
+    - `timeout` <[?number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type)> Timeout for each request (in ms).
+
+
+This method creates gateway.
 
 ```js
 const Gateway = require('micromq/gateway');
 
-const app = new Gateway({
-  // microservices names, later we can delegate requests on microservice
-  microservices: ['users', 'orders', 'histories'],
-  // rabbit options
+const gateway = new Gateway({
+  microservices: ['users', 'orders'],
   rabbit: {
-    // url for connect to rabbit (see https://www.rabbitmq.com/uri-spec.html)
-    url: 'amqp://localhost',
+    url: 'amqp://localhost:5672',
+  },
+  requests: {
+    timeout: 5000,
   },
 });
-
-// authentication middleware
-app.use(async (req, res, next) => {
-  // req is default http.ClientRequest
-  // res is default http.ServerResponse
-  // next is function for call next middleware
-  
-  if (!req.query.userId) {
-    res.writeHead(401);
-    res.end('Access Denied');
-    
-    return;
-  }
-  
-  // search for user
-  const user = await Users.findOne({
-    userId: req.query.userId,
-  });
-  
-  if (!user) {
-    res.writeHead(404);
-    res.end('User not found');
-  
-    return;
-  }
-  
-  // save user into session
-  req.session.user = user.toJSON();
-  
-  // call next middleware
-  await next();
-});
-
-app.use((req, res) => {  
-  // delegate request to users microservice
-  if (req.url.startsWith('/users')) {
-    return res.delegate('users');
-  } 
-  
-  // delegate request to orders microservice
-  if (req.url.startsWith('/orders')) {
-    return res.delegate('orders');
-  } 
-  
-  // delegate request to histories microservice
-  if (req.url.startsWith('/histories')) {
-    return res.delegate('histories');
-  }
-  
-  // send 404 if microservice not found
-  res.writeHead(404);
-  res.end('Not Found');
-});
-
-// start http server and rabbit consumers
-app.listen(process.env.PORT);
 ```
 
-Microservice:
+#### .action(name, handler)
+
+- `name` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Action name
+- `handler` <[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> Action handler
+
+This methods creates RPC action.
+
+```js
+const Gateway = require('micromq/gateway');
+const { Users } = require('./db');
+
+const gateway = new Gateway({ ... });
+
+gateway.action('increase_balance', async (meta) => {
+  await Users.updateOne({
+    userId: meta.userId,
+  }, {
+    $inc: {
+      balance: meta.amount,
+    },
+  });
+  
+  // send response to the client
+  return [200, { ok: true }];
+  
+  // via shortcut with default status code = 200
+  return { ok: true };
+});
+
+gateway.listen(3000);
+```
+
+```js
+const MicroMQ = require('micromq');
+
+const app = new MicroMQ({ ... });
+
+app.post('/deposit', (req, res) => {
+  // send rpc action to the gateway
+  res.json({
+    server: {
+      action: 'increase_balance',
+      meta: {
+        userId: 1,
+        amount: 500,
+      },
+    },
+  });
+});
+
+app.start();
+```
+
+#### .use(...middlewares)
+
+- `...middlewares` <...[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> Middlewares
+
+This method adds middlewares.
+
+#### .all(path, ...middlewares)
+
+- `path` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Endpoint path
+- `...middlewares` <...[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> Middlewares
+
+This method creates endpoint for all HTTP-methods.
+
+#### .options(path, ...middlewares),
+#### .get(path, ...middlewares),
+#### .post(path, ...middlewares),
+#### .put(path, ...middlewares),
+#### .patch(path, ...middlewares),
+#### .delete(path, ...middlewares)
+
+- `path` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Endpoint path
+- `...middlewares` <...[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> Middlewares
+
+This method creates endpoint with needed method.
+
+#### .middleware()
+
+- returns: <[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)>
+
+This method returns middleware for express.
+
+```js
+const express = require('express');
+const bodyParser = require('body-parser');
+const Gateway = require('micromq/gateway');
+const users = require('./routers/users');
+
+const app = express();
+const gateway = new Gateway({ ... });
+
+app.use(bodyParser.json());
+
+// apply middleware
+app.use(gateway.middleware());
+
+// monolith router
+app.use('/users', users);
+
+// delegate requests to the microservice
+app.use('/orders', (req, res) => res.delegate('orders'));
+```
+
+#### .listen(port)
+
+- `port` <[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type)> Port for listen.
+
+This method creates HTTP-server and starts listen needed port.
+
+### MicroMQ
+
+#### .constructor(options)
+
+- `options` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
+    - `name` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Microservice name
+    - `rabbit` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
+        - `url` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> RabbitMQ connection url.
+
+This method creates microservice.
 
 ```js
 const MicroMQ = require('micromq');
 
 const app = new MicroMQ({
-  // microservice name (later will be used in gateway)
-  name: 'users',
-  // rabbit options
+  microservice: 'users',
   rabbit: {
-    // url for connect to rabbit (see https://www.rabbitmq.com/uri-spec.html)
-    url: 'amqp://localhost',
+    url: 'amqp://localhost:5672',
   },
 });
+```
 
-// create route for get current user posts
-app.get('/users/me/posts', async (req, res) => {
-  // req = { query, body, headers, session, params }
-  // res = { writeHead: Function, end: Function, json: Function }
+#### .use(...middlewares)
+
+- `...middlewares` <...[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> Middlewares
+
+This method adds middlewares.
+
+#### .all(path, ...middlewares)
+
+- `path` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Endpoint path
+- `...middlewares` <...[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> Middlewares
+
+This method creates endpoint for all HTTP-methods.
+
+#### .options(path, ...middlewares),
+#### .get(path, ...middlewares),
+#### .post(path, ...middlewares),
+#### .put(path, ...middlewares),
+#### .patch(path, ...middlewares),
+#### .delete(path, ...middlewares)
+
+- `path` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Endpoint path
+- `...middlewares` <...[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> Middlewares
+
+This method creates endpoint with needed method.
+
+#### .ask(name, query)
+
+- `name` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Microservice for ask
+- `query` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
+    - `path` <[?string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Endpoint path
+    - `method` <[?string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Endpoint method
+    - `query` <[?Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Query params
+    - `params` <[?Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> URL params
+    - `body` <[?Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Body params
+- returns: <[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>> { status: <[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type)>, response: \<any\> }
+
+This method asks other microservice.
+
+```js
+const MicroMQ = require('micromq');
+
+const app = new MicroMQ({ ... });
+
+app.get('/users/me/info', async (req, res) => {
+  const { response } = await app.ask('balances', {
+    path: '/balances/me',
+    method: 'get',
+    params: {
+      userId: req.params.id,
+    },
+  });
   
-  // get user id from session
-  const { userId } = req.session.user;
-  
-  // search for user posts
-  const posts = await Posts.find({ userId });
-  
-  // send posts as json with content-type application/json
-  res.json(
-    posts.map(post => post.toJSON()),
-  );
+  res.json({
+    id: req.params.id,
+    name: `${req.session.first_name} ${req.session.last_name}`,
+    balance: response.amount,
+  });
 });
 
-// start microservice
 app.start();
 ```
 
-## Plans
+#### .start()
 
-- [x] Implement simple routing
-- [x] Implement gateway class
-- [x] Implement microservice class
-- [x] Add examples
-- [x] Improve message's data of request
-- [x] Add documentation
-- [x] Add tests
-- [x] Improve routing (add support for regex and url params)
-- [x] Add support for middlewares chain
-- [x] Add express middleware
-- [ ] Add WebSockets support
-- [x] Add cookies support
-- [x] Add RPC-actions
-- [x] Add microservice ask
-- [x] Add feature to set timeout for requests via options
-- [x] Add cluster support
+This method starts microservice.
 
 ## License
 
