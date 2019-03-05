@@ -216,7 +216,7 @@ This method creates endpoint with needed method.
     - `query` <[?Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Query params
     - `params` <[?Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> URL params
     - `body` <[?Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Body params
-- returns: <[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>> { status: <[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type)>, response:\<any\> }
+- returns: <[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)<[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>> { status: <[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type)>, response: \<any\> }
 
 This method asks other microservice.
 
