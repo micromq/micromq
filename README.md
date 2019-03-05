@@ -143,6 +143,7 @@ app.start();
 - [ ] Add WebSockets support
 - [x] Add cookies support
 - [x] Add RPC-actions
+- [x] Add microservice ask
 - [x] Add feature to set timeout for requests via options
 - [x] Add cluster support
 
