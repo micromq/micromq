@@ -14,6 +14,7 @@ $ npm i micomq -S
 
 ```sh
 $ RABBIT_URL=amqp://localhost node examples/users.js &
+$ RABBIT_URL=amqp://localhost node examples/balances.js &
 $ RABBIT_URL=amqp://localhost PORT=3000 node examples/gateway.js &
 $ PORT=3000 npm test
 ```
@@ -143,6 +144,7 @@ app.start();
 - [ ] Add WebSockets support
 - [x] Add cookies support
 - [x] Add RPC-actions
+- [x] Add microservice ask
 - [x] Add feature to set timeout for requests via options
 - [x] Add cluster support
 

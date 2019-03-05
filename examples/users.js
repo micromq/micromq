@@ -24,9 +24,20 @@ app.post('/users/login', (req, res) => {
   });
 });
 
-app.get('/users/me', (req, res) => {
+app.get('/users/me', async (req, res) => {
+  const  { id } = req.cookies;
+
+  const { response } = await app.ask('balances', {
+    path: '/balances/me',
+    method: 'get',
+    query: {
+      id: +id,
+    },
+  });
+
   res.json({
-    id: +req.cookies.id,
+    id: +id,
+    balance: response.amount,
     firstName: 'Mikhail',
     lastName: 'Semin',
     timestamp: req.session.timestamp,
@@ -45,7 +56,7 @@ app.get('/users/me/posts', (req, res) => {
         text: 'HR recommendations',
       },
     ]);
-  }, 15000);
+  }, 5000);
 });
 
 app.start();

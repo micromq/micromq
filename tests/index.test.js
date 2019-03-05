@@ -18,12 +18,17 @@ describe('gateway & microservice', async () => {
     expect(body).to.be.jsonSchema({
       type: 'object',
       required: [
+        'id',
+        'balance',
         'firstName',
         'lastName',
         'timestamp',
       ],
       properties: {
         id: {
+          type: 'number',
+        },
+        balance: {
           type: 'number',
         },
         firstName: {
