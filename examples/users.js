@@ -24,9 +24,21 @@ app.post('/users/login', (req, res) => {
   });
 });
 
-app.get('/users/me', (req, res) => {
+app.get('/users/me', async (req, res) => {
+  const  { id } = req.cookies;
+
+  const balance = await app.ask({
+    microservice: 'balances',
+    path: '/balances/me',
+    method: 'get',
+    query: {
+      id: +id,
+    },
+  });
+
   res.json({
-    id: +req.cookies.id,
+    id: +id,
+    balance: balance.amount,
     firstName: 'Mikhail',
     lastName: 'Semin',
     timestamp: req.session.timestamp,
