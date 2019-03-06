@@ -51,7 +51,7 @@ class Gateway extends BaseApp {
       Object.values(this._microservices).map(async (microservice) => {
         const connection = await microservice._createConnection();
         const channel = await connection.createChannel();
-        const queueName = `${microservice.responsesQueueName}:${process.env.PORT}`;
+        const queueName = `${microservice.responsesQueueName}:${process.pid}`;
 
         await channel.assertQueue(queueName);
 
@@ -156,7 +156,7 @@ class Gateway extends BaseApp {
           cookies: req.cookies,
           session: req.session,
           requestId: nanoid(),
-          queue: `${microservice.responsesQueueName}:${process.env.PORT}`,
+          queue: `${microservice.responsesQueueName}:${process.pid}`,
         };
 
         this._requests.set(message.requestId, {
