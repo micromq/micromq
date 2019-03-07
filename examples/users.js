@@ -7,7 +7,7 @@ const app = new MicroMQ({
   },
 });
 
-app.on('error', (req, res, err) => {
+app.on('error', (err, req, res) => {
   console.error(err);
 });
 
@@ -20,7 +20,7 @@ app.use(async (req, res, next) => {
     res.status(err.status || 500);
     res.json({ error: err.message || 'Server error' });
 
-    app.emit('error', req, res, err);
+    app.emit('error', err, req, res);
   }
 });
 

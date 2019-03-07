@@ -54,7 +54,7 @@ const gateway = new Gateway({
 - `name` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Action name
 - `handler` <[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> Action handler
 
-This methods creates RPC action.
+This method creates RPC action.
 
 ```js
 const Gateway = require('micromq/gateway');
@@ -101,6 +101,49 @@ app.post('/deposit', (req, res) => {
 
 app.start();
 ```
+
+#### .on(name, handler)
+
+- `name` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Event name
+- `handler` <[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> event handler
+
+This method creates application event ([read more](https://github.com/koajs/koa/wiki/Error-Handling)).
+
+```js
+const MicroMQ = require('micromq');
+
+const app = new MicroMQ({ ... });
+
+// register event
+app.on('error', (err, req, res) => {
+  console.error(err); // 'Random error!'
+});
+
+app.use(async (req, res, next) => {
+  try {
+    await next();
+  } catch (err) {
+    res.status(err.status || 500);
+    res.json({ error: err.message || 'Server error' });
+
+    // emit event
+    app.emit('error', err, req, res);
+  }
+});
+
+app.post('/throw', (req, res) => {
+  throw 'Random error!';
+});
+
+app.start();
+```
+
+#### .emit(name, ...args)
+
+- `name` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Event name
+- `...args` <...any> - Arguments
+
+This method emits application event. 
 
 #### .use(...middlewares)
 
