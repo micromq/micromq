@@ -7,10 +7,25 @@ const app = new MicroMQ({
   },
 });
 
+app.on('error', (req, res, err) => {
+  console.error(err);
+});
+
 app.use(async (req, res, next) => {
   req.session.timestamp = Date.now();
 
-  await next();
+  try {
+    await next();
+  } catch (err) {
+    res.status(err.status || 500);
+    res.json({ error: err.message || 'Server error' });
+
+    app.emit('error', req, res, err);
+  }
+});
+
+app.post('/users/throw', () => {
+  throw 'Random error!';
 });
 
 app.post('/users/login', (req, res) => {

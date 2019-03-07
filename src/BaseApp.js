@@ -6,6 +6,7 @@ class BaseApp extends RabbitApp {
   constructor(options) {
     super(options);
 
+    this._handlers = new Map();
     this._middlewares = [];
   }
 
@@ -30,6 +31,26 @@ class BaseApp extends RabbitApp {
         fn: (req, res) => middleware(req, res, () => this._next(req, res, idx)),
       });
     });
+  }
+
+  on(event, handler) {
+    this._handlers.set(event, handler);
+
+    return this;
+  }
+
+  emit(event, ...args) {
+    const handler = this._handlers.get(event);
+
+    if (!handler) {
+      console.error(`Emitting on not found handler was ignored (${event})`);
+
+      return;
+    }
+
+    handler(...args);
+
+    return this;
   }
 
   use(...middlewares) {
