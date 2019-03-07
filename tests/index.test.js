@@ -74,4 +74,11 @@ describe('gateway & microservice', async () => {
       error: 'Timed out',
     });
   });
+
+  it('should send response with server error', async () => {
+    const { status, body } = await request.post('/users/throw');
+
+    expect(status).to.be.equal(500);
+    expect(body).to.be.deep.equal({ error: 'Server error' });
+  });
 });
