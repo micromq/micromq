@@ -17,13 +17,23 @@ class Response {
     })));
   }
 
+  status(statusCode) {
+    this.statusCode = statusCode;
+
+    return this;
+  }
+
   writeHead(statusCode, headers = {}) {
     this.statusCode = statusCode;
     this.headers = headers;
+
+    return this;
   }
 
   end(response) {
     this._send(response);
+
+    return this;
   }
 
   json(response) {
@@ -32,6 +42,8 @@ class Response {
       'Content-Type': 'application/json',
     });
     this._send(response);
+
+    return this;
   }
 }
 
