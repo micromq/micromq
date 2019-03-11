@@ -44,7 +44,7 @@ describe('gateway & microservice', async () => {
     });
   });
 
-  it('should send response with url ends on the slash', async () => {
+  it('should send response with url which ends on the slash', async () => {
     const { status, body } = await request
       .get('/users/me/')
       .set('Cookie', 'id=1');
