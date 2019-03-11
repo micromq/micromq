@@ -1,4 +1,5 @@
 const methods = require('methods');
+const pathToRegex = require('path-to-regexp');
 const RabbitApp = require('./RabbitApp');
 const { toArray } = require('./utils');
 
@@ -21,13 +22,13 @@ class BaseApp extends RabbitApp {
   }
 
   _createEndpoint(path, method, ...middlewares) {
-    const paths = path && toArray(path);
+    const paths = path && toArray(path).map(item => pathToRegex(item));
 
     middlewares.forEach((middleware) => {
       const idx = this._middlewares.length;
 
       this._middlewares.push({
-        match: (req) => (!paths || paths.includes(req.path)) && (!method || req.method === method),
+        match: (req) => (!paths || paths.some(regex => regex.test(req.path))) && (!method || req.method === method),
         fn: (req, res) => middleware(req, res, () => this._next(req, res, idx)),
       });
     });
