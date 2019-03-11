@@ -44,6 +44,15 @@ describe('gateway & microservice', async () => {
     });
   });
 
+  it('should send response with url which ends on the slash', async () => {
+    const { status, body } = await request
+      .get('/users/me/')
+      .set('Cookie', 'id=1');
+
+    expect(status).to.be.equal(200);
+    expect(body).to.be.an('object');
+  });
+
   it('should trigger rpc-action (negative case)', async () => {
     const { status, body } = await request
       .post('/users/login')
