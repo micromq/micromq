@@ -38,8 +38,11 @@ class Gateway extends BaseApp {
       const query = qs.decode(queryString);
       const body = await parse.json(req);
 
+      req.path = (req.originalUrl || req.url).split('?')[0];
+      req.method = req.method.toLowerCase();
       req.body = body;
       req.query = query;
+      req.params = {};
       req.session = {};
 
       await this.middleware()(req, res, next);
@@ -148,9 +151,9 @@ class Gateway extends BaseApp {
         const requestsChannel = await microservice.createRequestsChannel();
 
         const message = {
-          path: (req.originalUrl || req.url).split('?')[0],
-          method: req.method.toLowerCase(),
-          params: {},
+          path: req.path,
+          method: req.method,
+          params: req.params,
           query: req.query,
           body: req.body,
           headers: req.headers,
