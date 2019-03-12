@@ -26,7 +26,7 @@ $ PORT=3000 npm test
 #### .constructor(options)
 
 - `options` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
-  - `microservices` <Array<[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>> Microservices for connect.
+  - `microservices` <[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>> Microservices for connect.
   - `rabbit` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
     - `url` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> RabbitMQ connection url.
   - `requests` <[?Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
@@ -144,6 +144,14 @@ app.start();
 - `...args` <...any> - Arguments
 
 This method emits application event. 
+
+#### .enablePrometheus(credentials)
+
+- `credentials` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Credentials for prometheus target
+  - `user` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>
+  - `password` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>
+  
+This method enables prometheus monitoring and adds `/metrics` endpoint.
 
 #### .use(...middlewares)
 
