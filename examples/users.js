@@ -39,19 +39,21 @@ app.post('/users/login', (req, res) => {
   });
 });
 
-app.get('/users/me', async (req, res) => {
-  const  { id } = req.cookies;
+app.get('/users/:id', async (req, res) => {
+  const { id: paramId } = req.params;
+  const { id: cookieId } = req.cookies;
+  const userId = Number.isNaN(+paramId) ? +cookieId : +paramId;
 
   const { response } = await app.ask('balances', {
     path: '/balances/me',
     method: 'get',
     query: {
-      id: +id,
+      id: userId,
     },
   });
 
   res.json({
-    id: +id,
+    id: userId,
     balance: response.amount,
     firstName: 'Mikhail',
     lastName: 'Semin',
