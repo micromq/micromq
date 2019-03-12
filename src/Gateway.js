@@ -202,7 +202,7 @@ class Gateway extends BaseApp {
     this.get(
       '/metrics',
       async (req, res, next) => {
-        if (credentials && req.headers.authorization !== basicAuth) {
+        if (credentials.user && credentials.password && req.headers.authorization !== basicAuth) {
           res.writeHead(403);
           res.end('Access Denied.');
 
