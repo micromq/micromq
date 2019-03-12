@@ -16,6 +16,7 @@
     "methods": "^1.1.2",
     "nanoid": "^2.0.0",
     "path-to-regexp": "^3.0.0",
+    "prom-client": "^11.2.1",
     "querystring": "^0.2.0"
   },
   "directories": {

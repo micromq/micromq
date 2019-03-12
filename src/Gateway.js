@@ -3,6 +3,7 @@ const nanoid = require('nanoid');
 const qs = require('querystring');
 const cookieParser = require('cookie-parser');
 const parse = require('co-body');
+const prometheus = require('prom-client');
 const RabbitApp = require('./RabbitApp');
 const BaseApp = require('./BaseApp');
 
@@ -59,7 +60,6 @@ class Gateway extends BaseApp {
         await channel.assertQueue(queueName);
 
         channel.consume(queueName, async (message) => {
-          // empty message
           if (!message || !message.content.toString()) {
             return;
           }
@@ -72,7 +72,6 @@ class Gateway extends BaseApp {
             console.error('Failed to parse response', err);
           }
 
-          // empty or invalid response
           if (!json) {
             channel.ack(message);
 
@@ -91,7 +90,7 @@ class Gateway extends BaseApp {
             return;
           }
 
-          const { timer, res } = request;
+          const { timer, res, resolve } = request;
 
           clearTimeout(timer);
 
@@ -115,6 +114,8 @@ class Gateway extends BaseApp {
               response = result;
             }
           }
+
+          resolve();
 
           res.writeHead(statusCode, headers);
           res.end(typeof response === 'object' ? JSON.stringify(response) : response);
@@ -150,6 +151,12 @@ class Gateway extends BaseApp {
 
         const requestsChannel = await microservice.createRequestsChannel();
 
+        let resolve;
+
+        const promise = new Promise((res) => {
+          resolve = res;
+        });
+
         const message = {
           path: req.path,
           method: req.method,
@@ -171,13 +178,56 @@ class Gateway extends BaseApp {
             this._requests.delete(message.requestId);
           }, this.options.requests.timeout),
           res,
+          resolve,
         });
 
         requestsChannel.sendToQueue(microservice.requestsQueueName, Buffer.from(JSON.stringify(message)));
+
+        return promise;
       };
 
       return next();
     };
+  }
+
+  enablePrometheus(credentials = {}) {
+    const histogram = new prometheus.Histogram({
+      name: 'http_request_duration_ms',
+      help: 'HTTP-requests information',
+      labelNames: ['code', 'url'],
+      buckets: [0.1, 0.5, 5, 15, 50, 100, 500],
+    });
+    const basicAuth = `Basic ${Buffer.from(`${credentials.user}:${credentials.password}`).toString('base64')}`;
+
+    this.get(
+      '/metrics',
+      async (req, res, next) => {
+        if (credentials && req.headers.authorization !== basicAuth) {
+          res.writeHead(403);
+          res.end('Access Denied.');
+
+          return;
+        }
+
+        await next();
+      },
+      (req, res) => {
+        res.writeHead(200, { 'Content-Type': prometheus.register.contentType });
+        res.end(prometheus.register.metrics());
+      },
+    );
+
+    this.use(async (req, res, next) => {
+      const start = Date.now();
+
+      await next();
+
+      if (req.path !== '/metrics') {
+        histogram
+          .labels(res.statusCode, req.path)
+          .observe(Date.now() - start);
+      }
+    });
   }
 
   async listen(port) {
