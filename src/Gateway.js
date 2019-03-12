@@ -150,6 +150,7 @@ class Gateway extends BaseApp {
         const message = {
           path: (req.originalUrl || req.url).split('?')[0],
           method: req.method.toLowerCase(),
+          params: {},
           query: req.query,
           body: req.body,
           headers: req.headers,

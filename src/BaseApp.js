@@ -22,13 +22,39 @@ class BaseApp extends RabbitApp {
   }
 
   _createEndpoint(path, method, ...middlewares) {
-    const paths = path && toArray(path).map(item => pathToRegex(item));
+    const paths = path && toArray(path).map((path) => {
+      const keys = [];
+
+      return {
+        regex: pathToRegex(path, keys),
+        keys,
+      };
+    });
 
     middlewares.forEach((middleware) => {
       const idx = this._middlewares.length;
 
       this._middlewares.push({
-        match: (req) => (!paths || paths.some(regex => regex.test(req.path))) && (!method || req.method === method),
+        match: (req) => {
+          const pathMatch = !paths || paths.find(path => path.regex.test(req.path));
+          const methodMatch = !method || req.method === method;
+
+          if (typeof pathMatch === 'object') {
+            req.params = {
+              ...req.params,
+              ...req.path.match(pathMatch.regex).slice(1).reduce((object, value, index) => {
+                const { name } = pathMatch.keys[index];
+
+                return {
+                  ...object,
+                  [name]: value,
+                };
+              }, {}),
+            };
+          }
+
+          return pathMatch && methodMatch;
+        },
         fn: (req, res) => middleware(req, res, () => this._next(req, res, idx)),
       });
     });
