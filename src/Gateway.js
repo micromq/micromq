@@ -166,6 +166,16 @@ class Gateway extends BaseApp {
           headers: req.headers,
           cookies: req.cookies,
           session: req.session,
+          connection: {
+            connecting: req.connection.connecting,
+            destroyed: req.connection.destroyed,
+            localAddress: req.connection.localAddress,
+            localPort: req.connection.localPort,
+            pending: req.connection.pending,
+            remoteAddress: req.connection.remoteAddress,
+            remoteFamily: req.connection.remoteFamily,
+            remotePort: req.connection.remotePort,
+          },
           requestId: nanoid(),
           queue: `${microservice.responsesQueueName}:${process.pid}`,
         };
