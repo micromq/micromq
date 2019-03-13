@@ -158,8 +158,8 @@ class Gateway extends BaseApp {
         });
 
         const message = {
-          path: req.path,
-          method: req.method,
+          path: (req.originalUrl || req.url).split('?')[0],
+          method: req.method.toLowerCase(),
           params: req.params,
           query: req.query,
           body: req.body,
