@@ -145,13 +145,38 @@ app.start();
 
 This method emits application event. 
 
-#### .enablePrometheus(credentials)
+#### .enablePrometheus(endpoint, credentials)
 
+- `endpoint` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Metrics' endpoint
 - `credentials` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Credentials for prometheus target
   - `user` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>
   - `password` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>
   
 This method enables prometheus monitoring and adds `/metrics` endpoint.
+
+```js
+const MicroMQ = require('micromq');
+
+const app = new MicroMQ({ ... });
+
+// start prometheus with default /metrics endpoint & without credentials
+app.enablePrometheus();
+
+// start prometheus with /users/metrics endpoint & without credentials
+app.enablePrometheus('/users/metrics');
+
+// start prometheus with /users/metrics endpoint & credentials
+app.enablePrometheus('/users/metrics', {
+  user: 'admin',
+  password: 'admin',
+});
+
+// start prometheus with default /metrics endpoint & credentials
+app.enablePrometheus({
+  user: 'admin',
+  password: 'admin',
+});
+```
 
 #### .use(...middlewares)
 
