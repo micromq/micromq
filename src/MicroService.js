@@ -56,7 +56,7 @@ class MicroService extends BaseApp {
         responsesChannel.ack(message);
       });
 
-      this._microservices.set(query.microservice, { microservice, channel, queueName });
+      this._microservices.set(name, { microservice, channel, queueName });
     }
 
     const promise = new Promise((resolve, reject) => {
