@@ -3,7 +3,6 @@ const nanoid = require('nanoid');
 const qs = require('querystring');
 const cookieParser = require('cookie-parser');
 const parse = require('co-body');
-const prometheus = require('prom-client');
 const RabbitApp = require('./RabbitApp');
 const BaseApp = require('./BaseApp');
 
@@ -198,46 +197,6 @@ class Gateway extends BaseApp {
 
       return next();
     };
-  }
-
-  enablePrometheus(credentials = {}) {
-    const histogram = new prometheus.Histogram({
-      name: 'http_request_duration_ms',
-      help: 'HTTP-requests information',
-      labelNames: ['code', 'url'],
-      buckets: [0.1, 0.5, 5, 15, 50, 100, 500],
-    });
-    const basicAuth = `Basic ${Buffer.from(`${credentials.user}:${credentials.password}`).toString('base64')}`;
-
-    this.get(
-      '/metrics',
-      async (req, res, next) => {
-        if (credentials.user && credentials.password && req.headers.authorization !== basicAuth) {
-          res.writeHead(403);
-          res.end('Access Denied.');
-
-          return;
-        }
-
-        await next();
-      },
-      (req, res) => {
-        res.writeHead(200, { 'Content-Type': prometheus.register.contentType });
-        res.end(prometheus.register.metrics());
-      },
-    );
-
-    this.use(async (req, res, next) => {
-      const start = Date.now();
-
-      await next();
-
-      if (req.path !== '/metrics') {
-        histogram
-          .labels(res.statusCode, req.path)
-          .observe(Date.now() - start);
-      }
-    });
   }
 
   async listen(port) {

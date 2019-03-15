@@ -1,5 +1,6 @@
 const methods = require('methods');
 const pathToRegex = require('path-to-regexp');
+const prometheus = require('prom-client');
 const RabbitApp = require('./RabbitApp');
 const { toArray } = require('./utils');
 
@@ -78,6 +79,61 @@ class BaseApp extends RabbitApp {
     handler(...args);
 
     return this;
+  }
+
+  enablePrometheus(...args) {
+    let endpoint = '/metrics';
+    let credentials = {};
+
+    if (args[0] && typeof args[0] === 'string') {
+      endpoint = args[0];
+    }
+
+    if (args[0] && typeof args[0] === 'object') {
+      credentials = args[0];
+    }
+
+    if (args[1] && typeof args[1] === 'object') {
+      credentials = args[1];
+    }
+
+    const histogram = new prometheus.Histogram({
+      name: 'http_request_duration_ms',
+      help: 'HTTP-requests information',
+      labelNames: ['code', 'url'],
+      buckets: [0.1, 0.5, 5, 15, 50, 100, 500],
+    });
+    const basicAuth = `Basic ${Buffer.from(`${credentials.user}:${credentials.password}`).toString('base64')}`;
+
+    this.get(
+      endpoint,
+      async (req, res, next) => {
+        if (credentials.user && credentials.password && req.headers.authorization !== basicAuth) {
+          res.writeHead(403);
+          res.end('Access Denied.');
+
+          return;
+        }
+
+        await next();
+      },
+      (req, res) => {
+        res.writeHead(200, { 'Content-Type': prometheus.register.contentType });
+        res.end(prometheus.register.metrics());
+      },
+    );
+
+    this.use(async (req, res, next) => {
+      const start = Date.now();
+
+      await next();
+
+      if (req.path !== endpoint) {
+        histogram
+          .labels(res.statusCode, req.path)
+          .observe(Date.now() - start);
+      }
+    });
   }
 
   use(...middlewares) {

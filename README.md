@@ -145,13 +145,40 @@ app.start();
 
 This method emits application event. 
 
-#### .enablePrometheus(credentials)
+#### .enablePrometheus(endpoint, credentials)
 
+- `endpoint` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Metrics' endpoint
 - `credentials` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Credentials for prometheus target
   - `user` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>
   - `password` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>
   
-This method enables prometheus monitoring and adds `/metrics` endpoint.
+This method enables prometheus monitoring.
+
+```js
+const Gateway = require('micromq/gateway');
+
+const gateway = new Gateway({ ... });
+
+// start prometheus with default /metrics endpoint & without credentials
+gateway.enablePrometheus();
+
+// start prometheus with /users/metrics endpoint & without credentials
+gateway.enablePrometheus('/users/metrics');
+
+// start prometheus with /users/metrics endpoint & credentials
+gateway.enablePrometheus('/users/metrics', {
+  user: 'admin',
+  password: 'admin',
+});
+
+// start prometheus with default /metrics endpoint & credentials
+gateway.enablePrometheus({
+  user: 'admin',
+  password: 'admin',
+});
+
+gateway.listen(3000);
+```
 
 #### .use(...middlewares)
 
@@ -231,6 +258,41 @@ const app = new MicroMQ({
     url: 'amqp://localhost:5672',
   },
 });
+```
+
+#### .enablePrometheus(endpoint, credentials)
+
+- `endpoint` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Metrics' endpoint
+- `credentials` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Credentials for prometheus target
+  - `user` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>
+  - `password` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>
+  
+This method enables prometheus monitoring.
+
+```js
+const MicroMQ = require('micromq');
+
+const app = new MicroMQ({ ... });
+
+// start prometheus with default /metrics endpoint & without credentials
+app.enablePrometheus();
+
+// start prometheus with /users/metrics endpoint & without credentials
+app.enablePrometheus('/users/metrics');
+
+// start prometheus with /users/metrics endpoint & credentials
+app.enablePrometheus('/users/metrics', {
+  user: 'admin',
+  password: 'admin',
+});
+
+// start prometheus with default /metrics endpoint & credentials
+app.enablePrometheus({
+  user: 'admin',
+  password: 'admin',
+});
+
+app.start();
 ```
 
 #### .use(...middlewares)
