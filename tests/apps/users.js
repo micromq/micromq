@@ -1,4 +1,4 @@
-const MicroMQ = require('../src/MicroService');
+const MicroMQ = require('../../src/MicroService');
 
 const app = new MicroMQ({
   name: 'users',
@@ -22,6 +22,14 @@ app.use(async (req, res, next) => {
 
     app.emit('error', err, req, res);
   }
+});
+
+app.action('new_deposit', (meta) => {
+  if (meta.amount <= 0) {
+    return [400, { error: 'Wrong amount' }];
+  }
+
+  return { ok: true };
 });
 
 app.post('/users/throw', () => {

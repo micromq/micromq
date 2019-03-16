@@ -1,4 +1,4 @@
-const Gateway = require('../gateway');
+const Gateway = require('../../gateway');
 
 const app = new Gateway({
   requests: {
@@ -18,8 +18,8 @@ app.action('authorize', (meta) => {
   return { isAuthorized: true };
 });
 
-app.all('/users/(.*)', async (req, res) => {
-  await res.delegate('users');
+app.all('/:microservice/(.*)', async (req, res) => {
+  await res.delegate(req.params.microservice);
 });
 
 app.listen(process.env.PORT);
