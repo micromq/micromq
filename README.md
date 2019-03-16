@@ -13,11 +13,15 @@ $ npm i micomq
 ## Tests
 
 ```sh
-$ RABBIT_URL=amqp://localhost node examples/users.js &
-$ RABBIT_URL=amqp://localhost node examples/balances.js &
-$ RABBIT_URL=amqp://localhost PORT=3000 node examples/gateway.js &
+$ RABBIT_URL=amqp://localhost node tests/apps/users.js &
+$ RABBIT_URL=amqp://localhost node tests/apps/balances.js &
+$ RABBIT_URL=amqp://localhost PORT=3000 node tests/apps/gateway.js &
 $ PORT=3000 npm test
 ```
+
+## Examples
+
+[There are some simple examples](examples).
 
 ## API
 
