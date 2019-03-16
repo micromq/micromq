@@ -24,14 +24,6 @@ app.use(async (req, res, next) => {
   }
 });
 
-app.action('new_deposit', (meta) => {
-  if (meta.amount <= 0) {
-    return [400, { error: 'Wrong amount' }];
-  }
-
-  return { ok: true };
-});
-
 app.post('/users/throw', () => {
   throw 'Random error!';
 });
