@@ -2,6 +2,8 @@ const nanoid = require('nanoid');
 const BaseApp = require('./BaseApp');
 const RabbitApp = require('./RabbitApp');
 const Response = require('./Response');
+const rpcActions = require('./managers/RpcActions');
+const { isRpcAction } = require('./utils');
 
 class MicroService extends BaseApp {
   constructor(options) {
@@ -11,16 +13,8 @@ class MicroService extends BaseApp {
     this._microservices = new Map();
   }
 
-  async _handler({ requestId, queue, ...request }) {
-    const responsesChannel = await this.createResponsesChannel();
-    const response = new Response(responsesChannel, queue, requestId);
-
-    return this._next(request, response);
-  }
-
   async ask(name, query) {
     let _resolve;
-    let _reject;
 
     let { microservice, channel, queueName } = this._microservices.get(name) || {};
 
@@ -44,13 +38,9 @@ class MicroService extends BaseApp {
         }
 
         const { response, statusCode, requestId } = JSON.parse(message.content.toString());
-        const { resolve, reject } = this._requests.get(requestId);
+        const { resolve } = this._requests.get(requestId);
 
-        if (statusCode >= 400) {
-          reject({ status: statusCode, response });
-        } else {
-          resolve({ status: statusCode, response });
-        }
+        resolve({ status: statusCode, response });
 
         this._requests.delete(requestId);
         responsesChannel.ack(message);
@@ -59,16 +49,14 @@ class MicroService extends BaseApp {
       this._microservices.set(name, { microservice, channel, queueName });
     }
 
-    const promise = new Promise((resolve, reject) => {
+    const promise = new Promise((resolve) => {
       _resolve = resolve;
-      _reject = reject;
     });
 
     const requestId = nanoid();
 
     this._requests.set(requestId, {
       resolve: _resolve,
-      reject: _reject,
     });
 
     await channel.sendToQueue(microservice.requestsQueueName, Buffer.from(JSON.stringify({
@@ -88,7 +76,19 @@ class MicroService extends BaseApp {
         return;
       }
 
-      await this._handler(JSON.parse(message.content.toString()));
+      const { requestId, queue, ...request } = JSON.parse(message.content.toString());
+
+      const responsesChannel = await this.createResponsesChannel();
+      const response = new Response(responsesChannel, queue, requestId);
+
+      if (isRpcAction(request)) {
+        const { statusCode, response: rpcResponse } = await rpcActions.handle(request);
+
+        response.status(statusCode);
+        response.json(rpcResponse);
+      } else {
+        await this._next(request, response);
+      }
 
       requestsChannel.ack(message);
     });

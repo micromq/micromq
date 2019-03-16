@@ -15,13 +15,15 @@ const db = {
   5: 1032,
 };
 
-app.post('/deposit', async (req, res) => {
+app.post('/balances/deposit', async (req, res) => {
   const { amount } = req.body;
 
   const { status, response } = await app.ask('users', {
-    action: 'new_deposit',
-    meta: {
-      amount,
+    server: {
+      action: 'new_deposit',
+      meta: {
+        amount,
+      },
     },
   });
 
@@ -33,7 +35,7 @@ app.post('/deposit', async (req, res) => {
     return;
   }
 
-  res.json(response);
+  res.status(status).json(response);
 });
 
 app.get('/balances/me', (req, res) => {
