@@ -19,6 +19,10 @@ $ RABBIT_URL=amqp://localhost PORT=3000 node tests/apps/gateway.js &
 $ PORT=3000 npm test
 ```
 
+## Examples
+
+[There are some simple examples](examples).
+
 ## API
 
 ### Gateway
