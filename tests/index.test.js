@@ -39,7 +39,7 @@ describe('gateway & microservice', async () => {
     expect(body.balance).to.be.equal(100);
   });
 
-  it('should trigger rpc-action (negative case)', async () => {
+  it('should trigger gateway action (negative case)', async () => {
     const { status, body } = await request
       .post('/users/login')
       .send({ userId: 123 });
@@ -50,7 +50,7 @@ describe('gateway & microservice', async () => {
     });
   });
 
-  it('should trigger rpc-action (positive case)', async () => {
+  it('should trigger gateway action (positive case)', async () => {
     const { status, body } = await request
       .post('/users/login')
       .send({ userId: 1 });
@@ -59,6 +59,27 @@ describe('gateway & microservice', async () => {
     expect(body).to.be.deep.equal({
       isAuthorized: true,
     });
+  });
+
+  it('should trigger microservice action (negative case)', async () => {
+    const { status, body } = await request
+      .post('/balances/deposit')
+      .send({ amount: -50 });
+
+    expect(status).to.be.equal(400);
+    expect(body).to.be.deep.equal({
+      error: 'Wrong amount',
+    });
+  });
+
+  it('should trigger microservice action (positive case)', async () => {
+    const { status, body } = await request
+      .post('/balances/deposit')
+      .send({ amount: 100 });
+
+    expect(status).to.be.equal(200);
+    expect(body).to.be.an('object');
+    expect(body.id).to.be.a('string');
   });
 
   it('should send timed out error', async () => {
