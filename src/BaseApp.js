@@ -9,6 +9,7 @@ class BaseApp extends RabbitApp {
     super(options);
 
     this._handlers = new Map();
+    this._actions = new Map();
     this._middlewares = [];
   }
 
@@ -63,6 +64,12 @@ class BaseApp extends RabbitApp {
 
   on(event, handler) {
     this._handlers.set(event, handler);
+
+    return this;
+  }
+
+  action(name, handler) {
+    this._actions.set(name, handler);
 
     return this;
   }

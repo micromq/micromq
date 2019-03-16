@@ -129,12 +129,6 @@ class Gateway extends BaseApp {
     this._consumersReady = true;
   }
 
-  action(name, handler) {
-    this._actions.set(name, handler);
-
-    return this;
-  }
-
   middleware() {
     return async (req, res, next) => {
       if (!this._consumersReady) {
