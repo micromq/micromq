@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const parse = require('co-body');
 const RabbitApp = require('./RabbitApp');
 const BaseApp = require('./BaseApp');
+const { isRPCAction } = require('./utils');
 
 const RESPONSES = {
   TIMED_OUT: JSON.stringify({
@@ -93,7 +94,7 @@ class Gateway extends BaseApp {
 
           clearTimeout(timer);
 
-          if (typeof response === 'object' && typeof response.server === 'object' && response.server.action) {
+          if (isRPCAction(response)) {
             const { action, meta } = response.server;
             const handler = this._actions.get(action);
 
