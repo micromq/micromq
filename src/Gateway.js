@@ -6,7 +6,7 @@ const parse = require('co-body');
 const RabbitApp = require('./RabbitApp');
 const BaseApp = require('./BaseApp');
 const rpcActions = require('./managers/RpcActions');
-const { isRpcAction } = require('./utils');
+const { isRpcAction, parseRabbitMessage } = require('./utils');
 
 const RESPONSES = {
   TIMED_OUT: JSON.stringify({
@@ -60,17 +60,7 @@ class Gateway extends BaseApp {
         await channel.assertQueue(queueName);
 
         channel.consume(queueName, async (message) => {
-          if (!message || !message.content.toString()) {
-            return;
-          }
-
-          let json;
-
-          try {
-            json = JSON.parse(message.content.toString());
-          } catch (err) {
-            console.error('Failed to parse response', err);
-          }
+          const json = parseRabbitMessage(message);
 
           if (!json) {
             channel.ack(message);

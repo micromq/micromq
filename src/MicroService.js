@@ -3,7 +3,7 @@ const BaseApp = require('./BaseApp');
 const RabbitApp = require('./RabbitApp');
 const Response = require('./Response');
 const rpcActions = require('./managers/RpcActions');
-const { isRpcAction } = require('./utils');
+const { isRpcAction, parseRabbitMessage } = require('./utils');
 
 class MicroService extends BaseApp {
   constructor(options) {
@@ -33,11 +33,15 @@ class MicroService extends BaseApp {
       await responsesChannel.assertQueue(queueName);
 
       responsesChannel.consume(queueName, (message) => {
-        if (!message || !message.content.toString()) {
+        const json = parseRabbitMessage(message);
+
+        if (!json) {
+          responsesChannel.ack(message);
+
           return;
         }
 
-        const { response, statusCode, requestId } = JSON.parse(message.content.toString());
+        const { response, statusCode, requestId } = json;
         const { resolve } = this._requests.get(requestId);
 
         resolve({ status: statusCode, response });
@@ -72,11 +76,15 @@ class MicroService extends BaseApp {
     const requestsChannel = await this.createRequestsChannel();
 
     requestsChannel.consume(this.requestsQueueName, async (message) => {
-      if (!message || !message.content.toString()) {
+      const json = parseRabbitMessage(message);
+
+      if (!json) {
+        requestsChannel.ack(message);
+
         return;
       }
 
-      const { requestId, queue, ...request } = JSON.parse(message.content.toString());
+      const { requestId, queue, ...request } = json;
 
       const responsesChannel = await this.createResponsesChannel();
       const response = new Response(responsesChannel, queue, requestId);
