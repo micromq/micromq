@@ -32,4 +32,4 @@ class RpcActions {
   }
 }
 
-module.exports = new RpcActions();
+module.exports = RpcActions;

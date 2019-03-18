@@ -5,7 +5,6 @@ const cookieParser = require('cookie-parser');
 const parse = require('co-body');
 const RabbitApp = require('./RabbitApp');
 const BaseApp = require('./BaseApp');
-const rpcActions = require('./managers/RpcActions');
 const { isRpcAction, parseRabbitMessage } = require('./utils');
 
 const RESPONSES = {
@@ -85,7 +84,7 @@ class Gateway extends BaseApp {
           clearTimeout(timer);
 
           if (isRpcAction(response)) {
-            const result = await rpcActions.handle(response);
+            const result = await this._actions.handle(response);
 
             statusCode = result.statusCode;
             response = result.response;

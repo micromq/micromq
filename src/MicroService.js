@@ -90,7 +90,7 @@ class MicroService extends BaseApp {
       const response = new Response(responsesChannel, queue, requestId);
 
       if (isRpcAction(request)) {
-        const { statusCode, response: rpcResponse } = await rpcActions.handle(request);
+        const { statusCode, response: rpcResponse } = await this._actions.handle(request);
 
         response.status(statusCode);
         response.json(rpcResponse);
