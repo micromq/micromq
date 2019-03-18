@@ -10,8 +10,8 @@ class BaseApp extends RabbitApp {
     super(options);
 
     this._handlers = new Map();
-    this._middlewares = [];
     this._actions = new RpcActions();
+    this._middlewares = [];
   }
 
   _next(req, res, idx = -1) {

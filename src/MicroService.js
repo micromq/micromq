@@ -2,7 +2,6 @@ const nanoid = require('nanoid');
 const BaseApp = require('./BaseApp');
 const RabbitApp = require('./RabbitApp');
 const Response = require('./Response');
-const rpcActions = require('./managers/RpcActions');
 const { isRpcAction, parseRabbitMessage } = require('./utils');
 
 class MicroService extends BaseApp {
@@ -95,7 +94,10 @@ class MicroService extends BaseApp {
         response.status(statusCode);
         response.json(rpcResponse);
       } else {
-        await this._next(request, response);
+        await this._next({
+          ...request,
+          ask: this.ask.bind(this),
+        }, response);
       }
 
       requestsChannel.ack(message);
