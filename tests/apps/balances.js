@@ -18,7 +18,7 @@ const db = {
 app.post('/balances/deposit', async (req, res) => {
   const { amount } = req.body;
 
-  const { status, response } = await app.ask('users', {
+  const { status, response } = await req.ask('users', {
     server: {
       action: 'new_deposit',
       meta: {
