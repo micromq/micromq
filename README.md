@@ -7,7 +7,7 @@ Microservice framework based on native Node.js HTTP module and AMQP protocol (ex
 ## Install
 
 ```sh
-$ npm i micomq
+$ npm i micromq
 ```
 
 ## Tests
