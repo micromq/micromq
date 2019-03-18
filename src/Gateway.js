@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const parse = require('co-body');
 const RabbitApp = require('./RabbitApp');
 const BaseApp = require('./BaseApp');
+const { isRpcAction, parseRabbitMessage } = require('./utils');
 
 const RESPONSES = {
   TIMED_OUT: JSON.stringify({
@@ -23,7 +24,6 @@ class Gateway extends BaseApp {
 
     this._consumersReady = false;
     this._requests = new Map();
-    this._actions = new Map();
     this._microservices = options.microservices.reduce((object, name) => ({
       ...object,
       [name]: new RabbitApp({
@@ -59,17 +59,7 @@ class Gateway extends BaseApp {
         await channel.assertQueue(queueName);
 
         channel.consume(queueName, async (message) => {
-          if (!message || !message.content.toString()) {
-            return;
-          }
-
-          let json;
-
-          try {
-            json = JSON.parse(message.content.toString());
-          } catch (err) {
-            console.error('Failed to parse response', err);
-          }
+          const json = parseRabbitMessage(message);
 
           if (!json) {
             channel.ack(message);
@@ -93,25 +83,11 @@ class Gateway extends BaseApp {
 
           clearTimeout(timer);
 
-          if (typeof response === 'object' && typeof response.server === 'object' && response.server.action) {
-            const { action, meta } = response.server;
-            const handler = this._actions.get(action);
+          if (isRpcAction(response)) {
+            const result = await this._actions.handle(response);
 
-            if (!handler) {
-              console.warn(`Action "${action}" not found`, response);
-
-              return;
-            }
-
-            const result = await handler(meta);
-
-            if (Array.isArray(result) && result.length === 2) {
-              statusCode = result[0];
-              response = result[1];
-            } else {
-              statusCode = 200;
-              response = result;
-            }
+            statusCode = result.statusCode;
+            response = result.response;
           }
 
           resolve();
@@ -127,12 +103,6 @@ class Gateway extends BaseApp {
     );
 
     this._consumersReady = true;
-  }
-
-  action(name, handler) {
-    this._actions.set(name, handler);
-
-    return this;
   }
 
   middleware() {

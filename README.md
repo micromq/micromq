@@ -264,6 +264,38 @@ const app = new MicroMQ({
 });
 ```
 
+#### .action(name, handler)
+
+- `name` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Action name
+- `handler` <[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> Action handler
+
+This method creates RPC action.
+
+```js
+const MicroMQ = require('micromq');
+const { Users } = require('./db');
+
+const app = new MicroMQ({ ... });
+
+app.action('new_deposit', async (meta) => {
+  await Users.updateOne({
+    userId: meta.userId,
+  }, {
+    $inc: {
+      level: 1,
+    },
+  });
+  
+  // send response to the client
+  return [200, { ok: true }];
+  
+  // via shortcut with default status code = 200
+  return { ok: true };
+});
+
+app.start();
+```
+
 #### .enablePrometheus(endpoint, credentials)
 
 - `endpoint` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Metrics' endpoint
@@ -343,11 +375,22 @@ const MicroMQ = require('micromq');
 const app = new MicroMQ({ ... });
 
 app.get('/users/me/info', async (req, res) => {
+  // ask microservice endpoint
   const { response } = await app.ask('balances', {
     path: '/balances/me',
     method: 'get',
     params: {
       userId: req.params.id,
+    },
+  });
+  
+  // ask microservice action
+  const { response } = await app.ask('balances', {
+    server: {
+      action: 'new_deposit',
+      meta: {
+        amount: 250,
+      },
     },
   });
   

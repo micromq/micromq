@@ -11,6 +11,14 @@ app.on('error', (err, req, res) => {
   console.error(err);
 });
 
+app.action('new_deposit', (meta) => {
+  if (meta.amount <= 0) {
+    return [400, { error: 'Wrong amount' }];
+  }
+
+  return { ok: true };
+});
+
 app.use(async (req, res, next) => {
   req.session.timestamp = Date.now();
 

@@ -2,6 +2,7 @@ const methods = require('methods');
 const pathToRegex = require('path-to-regexp');
 const prometheus = require('prom-client');
 const RabbitApp = require('./RabbitApp');
+const RpcActions = require('./managers/RpcActions');
 const { toArray } = require('./utils');
 
 class BaseApp extends RabbitApp {
@@ -10,6 +11,7 @@ class BaseApp extends RabbitApp {
 
     this._handlers = new Map();
     this._middlewares = [];
+    this._actions = new RpcActions();
   }
 
   _next(req, res, idx = -1) {
@@ -63,6 +65,12 @@ class BaseApp extends RabbitApp {
 
   on(event, handler) {
     this._handlers.set(event, handler);
+
+    return this;
+  }
+
+  action(name, handler) {
+    this._actions.add(name, handler);
 
     return this;
   }

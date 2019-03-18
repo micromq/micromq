@@ -15,17 +15,27 @@ const db = {
   5: 1032,
 };
 
-app.post('/deposit', async (req, res) => {
+app.post('/balances/deposit', async (req, res) => {
   const { amount } = req.body;
 
-  await app.ask('users', {
-    action: 'new_deposit',
-    meta: {
-      amount,
+  const { status, response } = await app.ask('users', {
+    server: {
+      action: 'new_deposit',
+      meta: {
+        amount,
+      },
     },
   });
 
-  res.json({ ok: true });
+  if (status === 200) {
+    res.status(status).json({
+      id: Math.random().toString().substr(2),
+    });
+
+    return;
+  }
+
+  res.status(status).json(response);
 });
 
 app.get('/balances/me', (req, res) => {
