@@ -45,8 +45,9 @@ class Gateway extends BaseApp {
       req.params = {};
       req.session = {};
 
-      await this.middleware()(req, res, next);
+      await next();
     });
+    this.use(this.middleware());
   }
 
   async _startConsumers() {
