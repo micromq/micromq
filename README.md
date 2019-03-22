@@ -2,7 +2,7 @@
 
 # micromq
 
-Microservice framework based on native Node.js HTTP module and AMQP protocol (express integration as feature). 🔬 🐇
+Microservice framework based on native Node.js HTTP module and AMQP protocol with express middleware & built-in prometheus. 🔬 🐇
 
 ## Install
 
