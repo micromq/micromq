@@ -6,7 +6,17 @@
   "scripts": {
     "test": "mocha ./tests --exit --timeout 30000"
   },
-  "keywords": [],
+  "keywords": [
+    "microservice",
+    "microservice-framework",
+    "gateway",
+    "http",
+    "rabbitmq",
+    "amqp",
+    "prometheus",
+    "express",
+    "express-middleware"
+  ],
   "author": "Mikhail Semin",
   "license": "MIT",
   "dependencies": {
