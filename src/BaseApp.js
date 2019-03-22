@@ -70,7 +70,9 @@ class BaseApp extends RabbitApp {
   }
 
   action(name, handler) {
-    this._actions.add(name, handler);
+    toArray(name).forEach((action) => {
+      this._actions.add(action, handler);
+    });
 
     return this;
   }
