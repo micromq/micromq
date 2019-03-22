@@ -6,12 +6,7 @@ const parse = require('co-body');
 const RabbitApp = require('./RabbitApp');
 const BaseApp = require('./BaseApp');
 const { isRpcAction, parseRabbitMessage } = require('./utils');
-
-const RESPONSES = {
-  TIMED_OUT: JSON.stringify({
-    error: 'Timed out',
-  }),
-};
+const { TIMED_OUT } = require('./constants/responses');
 
 class Gateway extends BaseApp {
   constructor(options) {
@@ -148,7 +143,7 @@ class Gateway extends BaseApp {
         this._requests.set(message.requestId, {
           timer: setTimeout(() => {
             res.writeHead(408, { 'Content-Type': 'application/json' });
-            res.end(RESPONSES.TIMED_OUT);
+            res.end(TIMED_OUT);
 
             this._requests.delete(message.requestId);
           }, this.options.requests.timeout),
