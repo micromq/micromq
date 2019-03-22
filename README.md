@@ -55,7 +55,7 @@ const gateway = new Gateway({
 
 #### .action(name, handler)
 
-- `name` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Action name
+- `name` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type) | [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>> Action name
 - `handler` <[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> Action handler
 
 This method creates RPC action.
@@ -266,7 +266,7 @@ const app = new MicroMQ({
 
 #### .action(name, handler)
 
-- `name` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Action name
+- `name` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type) | [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>> Action name
 - `handler` <[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)> Action handler
 
 This method creates RPC action.
