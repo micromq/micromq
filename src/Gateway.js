@@ -52,13 +52,9 @@ class Gateway extends BaseApp {
   async _startConsumers() {
     await Promise.all(
       Object.values(this._microservices).map(async (microservice) => {
-        const connection = await microservice._createConnection();
-        const channel = await connection.createChannel();
-        const queueName = `${microservice.responsesQueueName}:${process.pid}`;
+        const channel = await microservice.createChannelByPid();
 
-        await channel.assertQueue(queueName);
-
-        channel.consume(queueName, async (message) => {
+        channel.consume(microservice.queuePidName, async (message) => {
           const json = parseRabbitMessage(message);
 
           if (!json) {
@@ -72,7 +68,6 @@ class Gateway extends BaseApp {
           const { headers, requestId } = json;
           const request = this._requests.get(requestId);
 
-          // response or client not found
           if (!request || !response) {
             channel.ack(message);
 
@@ -146,7 +141,7 @@ class Gateway extends BaseApp {
             remotePort: req.connection.remotePort,
           },
           requestId: nanoid(),
-          queue: `${microservice.responsesQueueName}:${process.pid}`,
+          queue: microservice.queuePidName,
         };
 
         this._requests.set(message.requestId, {

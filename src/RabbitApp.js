@@ -8,43 +8,48 @@ class RabbitApp {
     this.responsesQueueName = `${this.options.name}:responses`;
   }
 
-  async _createConnection() {
-    if (!this._connection) {
-      this._connection = await amqplib.connect(this.options.rabbit.url);
+  get queuePidName() {
+    return `${this.responsesQueueName}-${process.pid}`;
+  }
+
+  async createConnection() {
+    if (!this.connection) {
+      this.connection = await amqplib.connect(this.options.rabbit.url);
 
       ['error', 'close'].forEach((event) => {
-        this._connection.on(event, () => {
-          this._connection = null;
-          this._createConnection();
+        this.connection.on(event, () => {
+          this.connection = null;
+          this.createConnection();
         });
       });
     }
 
-    return this._connection;
+    return this.connection;
+  }
+
+  async createChannel(queueName) {
+    const connection = await this.createConnection();
+    const channel = await connection.createChannel();
+
+    await channel.assertQueue(queueName);
+
+    return channel;
   }
 
   async createRequestsChannel() {
-    const connection = await this._createConnection();
-
-    if (!this._requestsChannel) {
-      this._requestsChannel = await connection.createChannel();
-
-      await this._requestsChannel.assertQueue(this.requestsQueueName);
+    if (!this.requestsChannel) {
+      this.requestsChannel = await this.createChannel(this.requestsQueueName);
     }
 
-    return this._requestsChannel;
+    return this.requestsChannel;
   }
 
-  async createResponsesChannel() {
-    const connection = await this._createConnection();
-
-    if (!this._responsesChannel) {
-      this._responsesChannel = await connection.createChannel();
-
-      await this._responsesChannel.assertQueue(this.responsesQueueName);
+  async createChannelByPid() {
+    if (!this.pidChannel) {
+      this.pidChannel = await this.createChannel(this.queuePidName);
     }
 
-    return this._responsesChannel;
+    return this.pidChannel;
   }
 }
 

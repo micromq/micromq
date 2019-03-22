@@ -15,23 +15,20 @@ class MicroService extends BaseApp {
   async ask(name, query) {
     let _resolve;
 
-    let { microservice, channel, queueName } = this._microservices.get(name) || {};
+    let app = this._microservices.get(name);
 
-    if (!microservice) {
-      microservice = new RabbitApp({
+    if (!app) {
+      const microservice = new RabbitApp({
         rabbit: this.options.rabbit,
         name,
       });
 
-      const connection = await microservice._createConnection();
-      const responsesChannel = await connection.createChannel();
+      const [requestsChannel, responsesChannel] = await Promise.all([
+        microservice.createChannel(),
+        microservice.createChannelByPid(),
+      ]);
 
-      channel = await connection.createChannel();
-      queueName = `${microservice.responsesQueueName}-${process.pid}`;
-
-      await responsesChannel.assertQueue(queueName);
-
-      responsesChannel.consume(queueName, (message) => {
+      responsesChannel.consume(microservice.queuePidName, (message) => {
         const json = parseRabbitMessage(message);
 
         if (!json) {
@@ -49,7 +46,13 @@ class MicroService extends BaseApp {
         responsesChannel.ack(message);
       });
 
-      this._microservices.set(name, { microservice, channel, queueName });
+      this._microservices.set(name, {
+        channel: requestsChannel,
+        requestsQueueName: microservice.requestsQueueName,
+        responsesQueueName: microservice.queuePidName,
+      });
+
+      app = this._microservices.get(name);
     }
 
     const promise = new Promise((resolve) => {
@@ -62,10 +65,10 @@ class MicroService extends BaseApp {
       resolve: _resolve,
     });
 
-    await channel.sendToQueue(microservice.requestsQueueName, Buffer.from(JSON.stringify({
+    await app.channel.sendToQueue(app.requestsQueueName, Buffer.from(JSON.stringify({
       ...query,
       requestId,
-      queue: queueName,
+      queue: app.responsesQueueName,
     })));
 
     return promise;
@@ -85,7 +88,7 @@ class MicroService extends BaseApp {
 
       const { requestId, queue, ...request } = json;
 
-      const responsesChannel = await this.createResponsesChannel();
+      const responsesChannel = await this.createChannel();
       const response = new Response(responsesChannel, queue, requestId);
 
       request.app = this;
