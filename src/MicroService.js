@@ -24,7 +24,7 @@ class MicroService extends BaseApp {
       });
 
       const [requestsChannel, responsesChannel] = await Promise.all([
-        microservice.createChannel(),
+        microservice.createRequestsChannel(),
         microservice.createChannelByPid(),
       ]);
 
