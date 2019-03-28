@@ -6,12 +6,7 @@ const parse = require('co-body');
 const RabbitApp = require('./RabbitApp');
 const BaseApp = require('./BaseApp');
 const { isRpcAction, parseRabbitMessage } = require('./utils');
-
-const RESPONSES = {
-  TIMED_OUT: JSON.stringify({
-    error: 'Timed out',
-  }),
-};
+const { TIMED_OUT } = require('./constants/responses');
 
 class Gateway extends BaseApp {
   constructor(options) {
@@ -45,20 +40,17 @@ class Gateway extends BaseApp {
       req.params = {};
       req.session = {};
 
-      await this.middleware()(req, res, next);
+      await next();
     });
+    this.use(this.middleware());
   }
 
   async _startConsumers() {
     await Promise.all(
       Object.values(this._microservices).map(async (microservice) => {
-        const connection = await microservice._createConnection();
-        const channel = await connection.createChannel();
-        const queueName = `${microservice.responsesQueueName}:${process.pid}`;
+        const channel = await microservice.createChannelByPid();
 
-        await channel.assertQueue(queueName);
-
-        channel.consume(queueName, async (message) => {
+        channel.consume(microservice.queuePidName, async (message) => {
           const json = parseRabbitMessage(message);
 
           if (!json) {
@@ -72,7 +64,6 @@ class Gateway extends BaseApp {
           const { headers, requestId } = json;
           const request = this._requests.get(requestId);
 
-          // response or client not found
           if (!request || !response) {
             channel.ack(message);
 
@@ -146,13 +137,13 @@ class Gateway extends BaseApp {
             remotePort: req.connection.remotePort,
           },
           requestId: nanoid(),
-          queue: `${microservice.responsesQueueName}:${process.pid}`,
+          queue: microservice.queuePidName,
         };
 
         this._requests.set(message.requestId, {
           timer: setTimeout(() => {
             res.writeHead(408, { 'Content-Type': 'application/json' });
-            res.end(RESPONSES.TIMED_OUT);
+            res.end(TIMED_OUT);
 
             this._requests.delete(message.requestId);
           }, this.options.requests.timeout),
