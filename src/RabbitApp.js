@@ -31,7 +31,9 @@ class RabbitApp {
     const connection = await this.createConnection();
     const channel = await connection.createChannel();
 
-    await channel.assertQueue(queueName);
+    if (queueName) {
+      await channel.assertQueue(queueName);
+    }
 
     return channel;
   }
