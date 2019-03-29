@@ -23,6 +23,7 @@
     "amqplib": "^0.5.3",
     "co-body": "^6.0.0",
     "cookie-parser": "^1.4.4",
+    "debug": "^4.1.1",
     "methods": "^1.1.2",
     "nanoid": "^2.0.0",
     "path-to-regexp": "^3.0.0",
