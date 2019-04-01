@@ -3,6 +3,7 @@ const BaseApp = require('./BaseApp');
 const RabbitApp = require('./RabbitApp');
 const Response = require('./Response');
 const { isRpcAction, parseRabbitMessage } = require('./utils');
+const debug = require('./utils/debug')('micromq-microservice');
 
 class MicroService extends BaseApp {
   constructor(options) {
@@ -76,6 +77,8 @@ class MicroService extends BaseApp {
 
   async start() {
     const requestsChannel = await this.createRequestsChannel();
+
+    debug(() => `starting to consume ${this.requestsQueueName}`);
 
     requestsChannel.consume(this.requestsQueueName, async (message) => {
       const json = parseRabbitMessage(message);

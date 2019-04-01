@@ -1,4 +1,5 @@
 const amqplib = require('amqplib');
+const debug = require('./utils/debug')('micromq-rabbit');
 
 class RabbitApp {
   constructor(options) {
@@ -14,6 +15,8 @@ class RabbitApp {
 
   async createConnection() {
     if (!this.connection) {
+      debug(() => 'creating connection');
+
       this.connection = await amqplib.connect(this.options.rabbit.url);
 
       ['error', 'close'].forEach((event) => {
@@ -30,6 +33,8 @@ class RabbitApp {
   async createChannel(queueName) {
     const connection = await this.createConnection();
     const channel = await connection.createChannel();
+
+    debug(() => `creating channel and asserting to ${queueName} queue`);
 
     if (queueName) {
       await channel.assertQueue(queueName);
