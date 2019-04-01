@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const parse = require('co-body');
 const RabbitApp = require('./RabbitApp');
 const BaseApp = require('./BaseApp');
+const debug = require('./utils/debug')('micromq-gateway');
 const { isRpcAction, parseRabbitMessage } = require('./utils');
 const { TIMED_OUT } = require('./constants/responses');
 
@@ -50,6 +51,8 @@ class Gateway extends BaseApp {
       Object.values(this._microservices).map(async (microservice) => {
         const channel = await microservice.createChannelByPid();
 
+        debug(() => `starting to consume ${microservice.queuePidName}`);
+
         channel.consume(microservice.queuePidName, async (message) => {
           const json = parseRabbitMessage(message);
 
@@ -82,6 +85,8 @@ class Gateway extends BaseApp {
           }
 
           resolve();
+
+          debug(() => `sending response to client: ${statusCode} ${typeof response === 'object' ? JSON.stringify(response) : response}`);
 
           res.writeHead(statusCode, headers);
           res.end(typeof response === 'object' ? JSON.stringify(response) : response);
@@ -151,6 +156,8 @@ class Gateway extends BaseApp {
           resolve,
         });
 
+        debug(() => `sending request to ${microservice.requestsQueueName}: ${JSON.stringify(message)}`);
+
         requestsChannel.sendToQueue(microservice.requestsQueueName, Buffer.from(JSON.stringify(message)));
 
         return promise;
@@ -164,6 +171,8 @@ class Gateway extends BaseApp {
     if (!this._consumersReady) {
       await this._startConsumers();
     }
+
+    debug(() => `starting to listen ${port} port`);
 
     return http
       .createServer((req, res) => this._next(req, res))
