@@ -46,4 +46,8 @@ app.get('/balances/me', (req, res) => {
   })
 });
 
-app.start();
+if (process.env.STANDALONE === 'true') {
+  app.listen(process.env.PORT);
+} else {
+  app.start();
+}
