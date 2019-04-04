@@ -15,7 +15,6 @@ class Gateway extends Server {
       ...options,
     });
 
-    this._consumersReady = false;
     this._requests = new Map();
     this._microservices = options.microservices.reduce((object, name) => ({
       ...object,
@@ -29,6 +28,12 @@ class Gateway extends Server {
   }
 
   async _startConsumers() {
+    if (this._consumersStarting) {
+      return;
+    }
+
+    this._consumersStarting = true;
+
     await Promise.all(
       Object.values(this._microservices).map(async (microservice) => {
         const channel = await microservice.createChannelByPid();
