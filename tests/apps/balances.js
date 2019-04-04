@@ -43,7 +43,7 @@ app.get('/balances/me', (req, res) => {
 
   res.json({
     amount: db[id],
-  })
+  });
 });
 
 if (process.env.STANDALONE === 'true') {

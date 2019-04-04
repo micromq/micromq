@@ -3,7 +3,7 @@ const BaseApp = require('./BaseApp');
 const RabbitApp = require('./RabbitApp');
 const Response = require('./Response');
 const Server = require('./Server');
-const { isRpcAction, parseRabbitMessage } = require('./utils');
+const { isRpcAction, parseRabbitMessage, improveHttpResponse } = require('./utils');
 const debug = require('./utils/debug')('micromq-microservice');
 
 class MicroService extends BaseApp {
@@ -83,7 +83,7 @@ class MicroService extends BaseApp {
       req.app = this;
       res.app = this;
 
-      console.log(req.json, res.json);
+      improveHttpResponse(res);
 
       await this._next(req, res);
     });
