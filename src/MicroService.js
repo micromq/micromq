@@ -2,7 +2,8 @@ const nanoid = require('nanoid');
 const BaseApp = require('./BaseApp');
 const RabbitApp = require('./RabbitApp');
 const Response = require('./Response');
-const { isRpcAction, parseRabbitMessage } = require('./utils');
+const Server = require('./Server');
+const { isRpcAction, parseRabbitMessage, improveHttpResponse } = require('./utils');
 const debug = require('./utils/debug')('micromq-microservice');
 
 class MicroService extends BaseApp {
@@ -73,6 +74,21 @@ class MicroService extends BaseApp {
     })));
 
     return promise;
+  }
+
+  listen(port) {
+    const server = new Server();
+
+    server.all('(.*)', async (req, res) => {
+      req.app = this;
+      res.app = this;
+
+      improveHttpResponse(res);
+
+      await this._next(req, res);
+    });
+
+    return server.createServer(port);
   }
 
   async start() {

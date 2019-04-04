@@ -1,15 +1,12 @@
 const http = require('http');
 const nanoid = require('nanoid');
-const qs = require('querystring');
-const cookieParser = require('cookie-parser');
-const parse = require('co-body');
 const RabbitApp = require('./RabbitApp');
-const BaseApp = require('./BaseApp');
+const Server = require('./Server');
 const debug = require('./utils/debug')('micromq-gateway');
 const { isRpcAction, parseRabbitMessage } = require('./utils');
 const { TIMED_OUT } = require('./constants/responses');
 
-class Gateway extends BaseApp {
+class Gateway extends Server {
   constructor(options) {
     super({
       requests: {
@@ -27,21 +24,6 @@ class Gateway extends BaseApp {
       }),
     }), {});
 
-    this.use(cookieParser());
-    this.use(async (req, res, next) => {
-      const [, queryString] = req.url.split('?');
-      const query = qs.decode(queryString);
-      const body = await parse.json(req);
-
-      req.path = (req.originalUrl || req.url).split('?')[0];
-      req.method = req.method.toLowerCase();
-      req.body = body;
-      req.query = query;
-      req.params = {};
-      req.session = {};
-
-      await next();
-    });
     this.use(this.middleware());
   }
 
@@ -177,11 +159,7 @@ class Gateway extends BaseApp {
       await this._startConsumers();
     }
 
-    debug(() => `starting to listen ${port} port`);
-
-    return http
-      .createServer((req, res) => this._next(req, res))
-      .listen(port);
+    this.createServer(port);
   }
 }
 

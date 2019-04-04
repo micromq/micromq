@@ -84,4 +84,8 @@ app.get('/users/me/posts', (req, res) => {
   }, 5000);
 });
 
-app.start();
+if (process.env.STANDALONE === 'true') {
+  app.listen(process.env.PORT);
+} else {
+  app.start();
+}

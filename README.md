@@ -404,6 +404,12 @@ app.get('/users/me/info', async (req, res) => {
 app.start();
 ```
 
+#### .listen(port)
+
+- `port` <[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type)> Port for listen.
+
+This method creates HTTP-server and starts listen needed port. The usual use case for this method is run tests.
+
 #### .start()
 
 This method starts microservice.
