@@ -96,6 +96,9 @@ class MicroService extends BaseApp {
 
     debug(() => `starting to consume ${this.requestsQueueName}`);
 
+    // prepare responses channel before consume
+    await this.createResponsesChannel();
+
     requestsChannel.consume(this.requestsQueueName, async (message) => {
       const json = parseRabbitMessage(message);
 
