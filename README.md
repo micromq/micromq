@@ -413,7 +413,3 @@ This method creates HTTP-server and starts listen needed port. The usual use cas
 #### .start()
 
 This method starts microservice.
-
-## License
-
-MIT.
