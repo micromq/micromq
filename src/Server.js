@@ -12,7 +12,7 @@ class Server extends BaseApp {
     this.use(prepareRequest);
   }
 
-  listen(port) {
+  createServer(port) {
     debug(() => `starting to listen ${port} port`);
 
     return http

@@ -88,7 +88,7 @@ class MicroService extends BaseApp {
       await this._next(req, res);
     });
 
-    return server.listen(port);
+    return server.createServer(port);
   }
 
   async start() {

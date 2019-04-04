@@ -159,11 +159,7 @@ class Gateway extends Server {
       await this._startConsumers();
     }
 
-    debug(() => `starting to listen ${port} port`);
-
-    return http
-      .createServer((req, res) => this._next(req, res))
-      .listen(port);
+    this.createServer(port);
   }
 }
 
