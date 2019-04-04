@@ -43,6 +43,14 @@ class RabbitApp {
     return channel;
   }
 
+  async createResponsesChannel() {
+    if (!this.responsesChannel) {
+      this.responsesChannel = await this.createChannel(this.responsesQueueName);
+    }
+
+    return this.responsesChannel;
+  }
+
   async createRequestsChannel() {
     if (!this.requestsChannel) {
       this.requestsChannel = await this.createChannel(this.requestsQueueName);
