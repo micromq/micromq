@@ -33,9 +33,19 @@ class Gateway extends Server {
 
     this._consumersStarting = true;
 
+    const connection = await this.createConnection();
+
     await Promise.all(
       Object.values(this._microservices).map(async (microservice) => {
-        const channel = await microservice.createChannelByPid();
+        // reuse gateway connection for microservices
+        microservice.connection = connection;
+
+        const [channel] = await Promise.all([
+          microservice.createChannelByPid(),
+
+          // prepare requests channel for delegate method
+          microservice.createRequestsChannel(),
+        ]);
 
         debug(() => `starting to consume ${microservice.queuePidName}`);
 
