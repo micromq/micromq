@@ -1,4 +1,3 @@
-const http = require('http');
 const nanoid = require('nanoid');
 const RabbitApp = require('./RabbitApp');
 const Server = require('./Server');
