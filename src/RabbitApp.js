@@ -9,14 +9,6 @@ class RabbitApp {
     this.responsesQueueName = `${this.options.name}:responses`;
   }
 
-  set connection(connection) {
-    this._connection = connection;
-  }
-
-  get connection() {
-    return this._connection;
-  }
-
   get queuePidName() {
     return `${this.responsesQueueName}-${process.pid}`;
   }
