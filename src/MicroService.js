@@ -25,6 +25,9 @@ class MicroService extends BaseApp {
         name,
       });
 
+      // reuse current microservice connection
+      microservice.connection = this.connection;
+
       const [requestsChannel, responsesChannel] = await Promise.all([
         microservice.createRequestsChannel(),
         microservice.createChannelByPid(),
