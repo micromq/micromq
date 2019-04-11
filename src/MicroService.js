@@ -15,8 +15,7 @@ class MicroService extends BaseApp {
   }
 
   async ask(name, query) {
-    let _resolve;
-
+    let resolve;
     let app = this._microservices.get(name);
 
     if (!app) {
@@ -60,14 +59,14 @@ class MicroService extends BaseApp {
       app = this._microservices.get(name);
     }
 
-    const promise = new Promise((resolve) => {
-      _resolve = resolve;
+    const promise = new Promise((r) => {
+      resolve = r;
     });
 
     const requestId = nanoid();
 
     this._requests.set(requestId, {
-      resolve: _resolve,
+      resolve,
     });
 
     await app.channel.sendToQueue(app.requestsQueueName, Buffer.from(JSON.stringify({
