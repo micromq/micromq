@@ -11,13 +11,16 @@ class MicroService extends BaseApp {
     super(options);
 
     this._requests = new Map();
-    this._microservices = options.microservices.reduce((object, name) => ({
-      ...object,
-      [name]: new RabbitApp({
-        rabbit: options.rabbit,
-        name,
-      }),
-    }), {});
+
+    if (options.microservices && options.microservices.length) {
+      this._microservices = options.microservices.reduce((object, name) => ({
+        ...object,
+        [name]: new RabbitApp({
+          rabbit: options.rabbit,
+          name,
+        }),
+      }), {});
+    }
   }
 
   async _startConsumers() {
