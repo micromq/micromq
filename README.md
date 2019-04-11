@@ -247,9 +247,10 @@ This method creates HTTP-server and starts listen needed port.
 #### .constructor(options)
 
 - `options` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
-    - `name` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Microservice name
-    - `rabbit` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
-        - `url` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> RabbitMQ connection url.
+  - `microservices` <[Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)<[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>> Microservices for connect.
+  - `name` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Microservice name
+  - `rabbit` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
+    - `url` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> RabbitMQ connection url.
 
 This method creates microservice.
 
@@ -372,7 +373,10 @@ This method asks other microservice.
 ```js
 const MicroMQ = require('micromq');
 
-const app = new MicroMQ({ ... });
+const app = new MicroMQ({
+  ...,
+  microservices: ['balances'],
+});
 
 app.get('/users/me/info', async (req, res) => {
   // ask microservice endpoint
