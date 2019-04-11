@@ -11,69 +11,82 @@ class MicroService extends BaseApp {
     super(options);
 
     this._requests = new Map();
-    this._microservices = new Map();
+    this._microservices = options.microservices.reduce((object, name) => ({
+      ...object,
+      [name]: new RabbitApp({
+        rabbit: options.rabbit,
+        name,
+      }),
+    }), {});
+  }
+
+  async _startConsumers() {
+    if (this._consumersStarting) {
+      return;
+    }
+
+    this._consumersStarting = true;
+
+    const connection = await this.createConnection();
+
+    await Promise.all(
+      Object.values(this._microservices).map(async (microservice) => {
+        // reuse current microservice connection
+        microservice.connection = connection;
+
+        const [channel] = await Promise.all([
+          microservice.createChannelByPid(),
+
+          // prepare requests channel for this.ask
+          microservice.createRequestsChannel(),
+        ]);
+
+        channel.consume(microservice.queuePidName, (message) => {
+          const json = parseRabbitMessage(message);
+
+          if (!json) {
+            channel.ack(message);
+
+            return;
+          }
+
+          const { response, statusCode, requestId } = json;
+          const { resolve } = this._requests.get(requestId);
+
+          resolve({ status: statusCode, response });
+
+          this._requests.delete(requestId);
+          channel.ack(message);
+        });
+      }),
+    );
+
+    this._consumersReady = true;
   }
 
   async ask(name, query) {
-    let _resolve;
-
-    let app = this._microservices.get(name);
-
-    if (!app) {
-      const microservice = new RabbitApp({
-        rabbit: this.options.rabbit,
-        name,
-      });
-
-      // reuse current microservice connection
-      microservice.connection = this.connection;
-
-      const [requestsChannel, responsesChannel] = await Promise.all([
-        microservice.createRequestsChannel(),
-        microservice.createChannelByPid(),
-      ]);
-
-      responsesChannel.consume(microservice.queuePidName, (message) => {
-        const json = parseRabbitMessage(message);
-
-        if (!json) {
-          responsesChannel.ack(message);
-
-          return;
-        }
-
-        const { response, statusCode, requestId } = json;
-        const { resolve } = this._requests.get(requestId);
-
-        resolve({ status: statusCode, response });
-
-        this._requests.delete(requestId);
-        responsesChannel.ack(message);
-      });
-
-      this._microservices.set(name, {
-        channel: requestsChannel,
-        requestsQueueName: microservice.requestsQueueName,
-        responsesQueueName: microservice.queuePidName,
-      });
-
-      app = this._microservices.get(name);
+    if (!this._consumersReady) {
+      await this._startConsumers();
     }
 
-    const promise = new Promise((resolve) => {
-      _resolve = resolve;
-    });
+    const microservice = this._microservices[name];
 
+    if (!microservice) {
+      throw new Error(`Microservice ${name} not found`);
+    }
+
+    let resolve;
     const requestId = nanoid();
+    const promise = new Promise(r => (resolve = r));
 
-    this._requests.set(requestId, {
-      resolve: _resolve,
-    });
+    this._requests.set(requestId, { resolve });
 
-    await app.channel.sendToQueue(app.requestsQueueName, Buffer.from(JSON.stringify({
+    const channel = await microservice.createRequestsChannel();
+
+    await channel.sendToQueue(microservice.requestsQueueName, Buffer.from(JSON.stringify({
       ...query,
       requestId,
-      queue: app.responsesQueueName,
+      queue: microservice.queuePidName,
     })));
 
     return promise;
