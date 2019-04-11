@@ -30,7 +30,7 @@ class MicroService extends BaseApp {
     const connection = await this.createConnection();
 
     await Promise.all(
-      this._microservices.map(async (microservice) => {
+      Object.values(this._microservices).map(async (microservice) => {
         // reuse current microservice connection
         microservice.connection = connection;
 
@@ -69,9 +69,14 @@ class MicroService extends BaseApp {
       await this._startConsumers();
     }
 
+    const microservice = this._microservices[name];
+
+    if (!microservice) {
+      throw new Error(`Microservice ${name} not found`);
+    }
+
     let resolve;
     const requestId = nanoid();
-    const microservice = this._microservices.get(name);
     const promise = new Promise(r => (resolve = r));
 
     this._requests.set(requestId, { resolve });
