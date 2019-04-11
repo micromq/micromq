@@ -2,6 +2,7 @@ const MicroMQ = require('../../src/MicroService');
 
 const app = new MicroMQ({
   name: 'balances',
+  microservices: ['users'],
   rabbit: {
     url: process.env.RABBIT_URL,
   },
