@@ -66,7 +66,7 @@ const { Users } = require('./db');
 
 const gateway = new Gateway({ ... });
 
-gateway.action('increase_balance', async (meta) => {
+gateway.action('increase_balance', async (meta, res) => {
   if (!meta.amount || Number.isNaN(+meta.amount)) {
     res.status(400);
     res.json({ error: 'Bad data' });
