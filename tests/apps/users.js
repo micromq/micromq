@@ -12,12 +12,15 @@ app.on('error', (err, req, res) => {
   console.error(err);
 });
 
-app.action('new_deposit', (meta) => {
+app.action('new_deposit', (meta, res) => {
   if (meta.amount <= 0) {
-    return [400, { error: 'Wrong amount' }];
+    res.status(400);
+    res.json({ error: 'Wrong amount' });
+
+    return;
   }
 
-  return { ok: true };
+  res.json({ ok: true });
 });
 
 app.use(async (req, res, next) => {

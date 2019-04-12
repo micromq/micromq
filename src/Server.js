@@ -1,6 +1,6 @@
 const http = require('http');
 const cookieParser = require('cookie-parser');
-const { prepareRequest } = require('./middlewares');
+const { prepareRequest, upgradeServerResponse } = require('./middlewares');
 const BaseApp = require('./BaseApp');
 const debug = require('./utils/debug')('micromq-server');
 
@@ -10,6 +10,7 @@ class Server extends BaseApp {
 
     this.use(cookieParser());
     this.use(prepareRequest);
+    this.use(upgradeServerResponse);
   }
 
   createServer(port) {

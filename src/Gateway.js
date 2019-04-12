@@ -74,19 +74,15 @@ class Gateway extends Server {
           clearTimeout(timer);
 
           if (isRpcAction(response)) {
-            const result = await this._actions.handle(response);
-
-            statusCode = result.statusCode;
-            response = result.response;
+            await this._actions.handle(response, res);
+          } else {
+            res.writeHead(statusCode, headers);
+            res.end(typeof response === 'object' ? JSON.stringify(response) : response);
           }
-
-          resolve();
 
           debug(() => `sending response to client: ${statusCode} ${typeof response === 'object' ? JSON.stringify(response) : response}`);
 
-          res.writeHead(statusCode, headers);
-          res.end(typeof response === 'object' ? JSON.stringify(response) : response);
-
+          resolve();
           channel.ack(message);
 
           this._requests.delete(requestId);
@@ -110,13 +106,10 @@ class Gateway extends Server {
           throw new Error(`Microservice ${name} not found`);
         }
 
-        const requestsChannel = await microservice.createRequestsChannel();
-
         let resolve;
 
-        const promise = new Promise((res) => {
-          resolve = res;
-        });
+        const requestsChannel = await microservice.createRequestsChannel();
+        const promise = new Promise(r => (resolve = r));
 
         const message = {
           path: (req.originalUrl || req.url).split('?')[0],

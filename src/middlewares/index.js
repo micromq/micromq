@@ -15,3 +15,33 @@ module.exports.prepareRequest = async (req, res, next) => {
 
   await next();
 };
+
+module.exports.upgradeServerResponse = async (req, res, next) => {
+  const writeHead = res.writeHead.bind(res);
+
+  res.writeHead = function(statusCode, headers) {
+    this.statusCode = statusCode;
+    this.headers = headers;
+
+    writeHead(statusCode, headers);
+
+    return this;
+  };
+
+  res.status = function(statusCode) {
+    this.statusCode = statusCode;
+
+    return this;
+  };
+
+  res.json = function(response) {
+    writeHead(this.statusCode, {
+      ...this.headers,
+      'Content-Type': 'application/json',
+    });
+
+    return this.end(JSON.stringify(response));
+  };
+
+  await next();
+};
