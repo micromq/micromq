@@ -48,10 +48,7 @@ class BaseApp extends RabbitApp {
               ...req.path.match(pathMatch.regex).slice(1).reduce((object, value, index) => {
                 const { name } = pathMatch.keys[index];
 
-                return {
-                  ...object,
-                  [name]: value,
-                };
+                return name ? { ...object, [name]: value } : object;
               }, {}),
             };
           }
