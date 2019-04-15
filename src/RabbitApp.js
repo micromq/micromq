@@ -45,7 +45,9 @@ class RabbitApp {
     debug(() => `creating channel and asserting to ${queueName} queue`);
 
     if (queueName) {
-      await channel.assertQueue(queueName);
+      await channel.assertQueue(queueName, {
+        autoDelete: true,
+      });
     }
 
     return channel;
