@@ -22,31 +22,3 @@ module.exports.parseRabbitMessage = (message) => {
 
   return json;
 };
-
-module.exports.improveHttpResponse = (res) => {
-  const writeHead = res.writeHead.bind(res);
-
-  res.writeHead = function(statusCode, headers) {
-    this.statusCode = statusCode;
-    this.headers = headers;
-
-    writeHead(statusCode, headers);
-
-    return this;
-  };
-
-  res.status = function(statusCode) {
-    this.statusCode = statusCode;
-
-    return this;
-  };
-
-  res.json = function(response) {
-    writeHead(this.statusCode, {
-      ...this.headers,
-      'Content-Type': 'application/json',
-    });
-
-    return this.end(JSON.stringify(response));
-  };
-};

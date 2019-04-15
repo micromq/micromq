@@ -45,20 +45,17 @@ describe('gateway & microservice', async () => {
       .send({ userId: 123 });
 
     expect(status).to.be.equal(400);
-    expect(body).to.be.deep.equal({
-      error: 'Access denied',
-    });
+    expect(body).to.be.deep.equal({ error: 'Access denied' });
   });
 
   it('should trigger gateway action (positive case)', async () => {
-    const { status, body } = await request
+    const { status, body, headers } = await request
       .post('/users/login')
       .send({ userId: 1 });
 
     expect(status).to.be.equal(200);
-    expect(body).to.be.deep.equal({
-      isAuthorized: true,
-    });
+    expect(body).to.be.deep.equal({ isAuthorized: true });
+    expect(headers['set-cookie']).to.be.deep.equal(['userId=1']);
   });
 
   it('should trigger microservice action (negative case)', async () => {
@@ -67,9 +64,7 @@ describe('gateway & microservice', async () => {
       .send({ amount: -50 });
 
     expect(status).to.be.equal(400);
-    expect(body).to.be.deep.equal({
-      error: 'Wrong amount',
-    });
+    expect(body).to.be.deep.equal({ error: 'Wrong amount' });
   });
 
   it('should trigger microservice action (positive case)', async () => {
@@ -86,9 +81,7 @@ describe('gateway & microservice', async () => {
     const { status, body } = await request.get('/users/me/posts');
 
     expect(status).to.be.equal(408);
-    expect(body).to.be.deep.equal({
-      error: 'Timed out',
-    });
+    expect(body).to.be.deep.equal({ error: 'Timed out' });
   });
 
   it('should send response with server error', async () => {

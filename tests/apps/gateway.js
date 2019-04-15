@@ -10,12 +10,16 @@ const app = new Gateway({
   },
 });
 
-app.action('authorize', (meta) => {
+app.action('authorize', (meta, res) => {
   if (meta.userId !== 1) {
-    return [400, { error: 'Access denied' }];
+    res.status(400);
+    res.json({ error: 'Access denied' });
+
+    return;
   }
 
-  return { isAuthorized: true };
+  res.writeHead(200, { 'Set-Cookie': `userId=${meta.userId}` });
+  res.json({ isAuthorized: true });
 });
 
 app.all('/:microservice/(.*)', async (req, res) => {

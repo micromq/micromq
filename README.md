@@ -66,7 +66,14 @@ const { Users } = require('./db');
 
 const gateway = new Gateway({ ... });
 
-gateway.action('increase_balance', async (meta) => {
+gateway.action('increase_balance', async (meta, res) => {
+  if (!meta.amount || Number.isNaN(+meta.amount)) {
+    res.status(400);
+    res.json({ error: 'Bad data' });
+    
+    return;
+  }
+  
   await Users.updateOne({
     userId: meta.userId,
   }, {
@@ -74,12 +81,8 @@ gateway.action('increase_balance', async (meta) => {
       balance: meta.amount,
     },
   });
-  
-  // send response to the client
-  return [200, { ok: true }];
-  
-  // via shortcut with default status code = 200
-  return { ok: true };
+
+  res.json({ ok: true });
 });
 
 gateway.listen(3000);
@@ -278,7 +281,7 @@ const { Users } = require('./db');
 
 const app = new MicroMQ({ ... });
 
-app.action('new_deposit', async (meta) => {
+app.action('new_deposit', async (meta, res) => {
   await Users.updateOne({
     userId: meta.userId,
   }, {
@@ -286,12 +289,9 @@ app.action('new_deposit', async (meta) => {
       level: 1,
     },
   });
-  
-  // send response to the client
-  return [200, { ok: true }];
-  
-  // via shortcut with default status code = 200
-  return { ok: true };
+
+
+  res.json({ ok: true });
 });
 
 app.start();
