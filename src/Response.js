@@ -11,6 +11,8 @@ class Response {
   }
 
   _send(response) {
+    this.response = response;
+
     debug(() => `sending response to ${this._responsesQueueName}: ${JSON.stringify({
       response,
       statusCode: this.statusCode,
