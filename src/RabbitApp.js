@@ -38,14 +38,14 @@ class RabbitApp {
     return this.connection;
   }
 
-  async createChannel(queueName) {
+  async createChannel(queueName, options) {
     const connection = await this.createConnection();
     const channel = await connection.createChannel();
 
     debug(() => `creating channel and asserting to ${queueName} queue`);
 
     if (queueName) {
-      await channel.assertQueue(queueName);
+      await channel.assertQueue(queueName, options);
     }
 
     return channel;
@@ -67,9 +67,9 @@ class RabbitApp {
     return this.requestsChannel;
   }
 
-  async createChannelByPid() {
+  async createChannelByPid(options) {
     if (!this.pidChannel) {
-      this.pidChannel = await this.createChannel(this.queuePidName);
+      this.pidChannel = await this.createChannel(this.queuePidName, options);
     }
 
     return this.pidChannel;
