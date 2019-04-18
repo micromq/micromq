@@ -41,7 +41,9 @@ class Gateway extends Server {
         microservice.connection = connection;
 
         const [channel] = await Promise.all([
-          microservice.createChannelByPid(),
+          microservice.createChannelByPid({
+            autoDelete: true,
+          }),
 
           // prepare requests channel for delegate method
           microservice.createRequestsChannel(),

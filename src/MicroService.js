@@ -38,7 +38,9 @@ class MicroService extends BaseApp {
         microservice.connection = connection;
 
         const [channel] = await Promise.all([
-          microservice.createChannelByPid(),
+          microservice.createChannelByPid({
+            autoDelete: true,
+          }),
 
           // prepare requests channel for this.ask
           microservice.createRequestsChannel(),
