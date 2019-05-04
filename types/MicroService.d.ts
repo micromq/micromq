@@ -26,6 +26,9 @@ declare class MicroMQ {
     public action(name: string|Array<string>, handler: (meta: any, res: Response) => any): void;
     public action(name: string|Array<string>, handler: Function): void;
 
+    public on(name: string, handler: (err: Error|null|undefined, req: Request, res: Response) => any): void;
+    public on(name: string, handler: Function): void;
+
     public enablePrometheus(
         endpoint?: string,
         credentials?: {
