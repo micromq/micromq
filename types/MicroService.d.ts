@@ -1,3 +1,5 @@
+/// <reference types='node' />
+
 import { Server } from 'http';
 import {
     IRouterHandler,
