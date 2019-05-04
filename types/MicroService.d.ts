@@ -21,7 +21,7 @@ declare class MicroMQ {
         },
     });
 
-    public action(name: string|Array<string>, handler: (mate: any, res: Response) => void|Response): void;
+    public action(name: string|Array<string>, handler: (meta: any, res: Response) => void|Response): void;
     public action(name: string|Array<string>, handler: Function): void;
 
     public enablePrometheus(
