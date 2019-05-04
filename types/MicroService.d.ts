@@ -10,7 +10,7 @@ type RequestHandlerParams = RequestHandler | ErrorRequestHandler | Array<Request
 type ApplicationRequestHandler<T> = IRouterHandler<T> & IRouterMatcher<T> & ((...handlers: RequestHandlerParams[]) => T);
 
 
-export declare class MicroMQ {
+declare class MicroMQ {
     public constructor (optionns: {
         name: string,
         microservices?: Array<string>,
@@ -63,3 +63,5 @@ export declare class MicroMQ {
 
     public start(): Promise<void>;
 }
+
+export = MicroMQ;

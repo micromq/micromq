@@ -12,7 +12,7 @@ import {
 type RequestHandlerParams = RequestHandler | ErrorRequestHandler | Array<RequestHandler | ErrorRequestHandler>;
 type ApplicationRequestHandler<T> = IRouterHandler<T> & IRouterMatcher<T> & ((...handlers: RequestHandlerParams[]) => T);
 
-export declare class Gateway {
+declare class Gateway {
     public constructor (optionns: {
         microservices: Array<string>,
         rabbit?: {
@@ -55,8 +55,4 @@ export declare class Gateway {
     public listen(port: number): Promise<void>;
 }
 
-
-
-export interface GatewayedResponse extends Response {
-    delegate(name: string): Promise<any>;
-}
+export = Gateway;
