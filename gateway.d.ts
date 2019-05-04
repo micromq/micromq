@@ -23,7 +23,7 @@ declare class Gateway {
         },
     });
 
-    public action(name: string|Array<string>, handler: (meta: any, res: Response) => void|Response): void;
+    public action(name: string|Array<string>, handler: (meta: any, res: Response) => void|Response|Promise<void>|Promise<Response>): void;
     public action(name: string|Array<string>, handler: Function): void;
 
     public enablePrometheus(

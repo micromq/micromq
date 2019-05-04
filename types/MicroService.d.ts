@@ -6,6 +6,8 @@ import {
     IRouterMatcher,
     RequestHandler,
     ErrorRequestHandler,
+    Request,
+    Response,
         } from 'express';
 
 type RequestHandlerParams = RequestHandler | ErrorRequestHandler | Array<RequestHandler | ErrorRequestHandler>;
@@ -21,7 +23,7 @@ declare class MicroMQ {
         },
     });
 
-    public action(name: string|Array<string>, handler: (meta: any, res: Response) => void|Response): void;
+    public action(name: string|Array<string>, handler: (meta: any, res: Response) => any): void;
     public action(name: string|Array<string>, handler: Function): void;
 
     public enablePrometheus(
