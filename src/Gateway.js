@@ -15,6 +15,11 @@ class Gateway extends Server {
     });
 
     this._requests = new Map();
+  
+    if (!options || !Array.isArray(options.microservices) || !options.microservices.length) {
+      throw new Error('Gateway must have at least one microservice');
+    }
+
     this._microservices = options.microservices.reduce((object, name) => ({
       ...object,
       [name]: new RabbitApp({

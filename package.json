@@ -4,7 +4,8 @@
   "description": "Microservice framework based on native Node.js HTTP module and AMQP protocol (express integration as feature).",
   "main": "src/MicroService.js",
   "scripts": {
-    "test": "mocha ./tests --exit --timeout 30000"
+    "test": "mocha ./tests --exit --timeout 30000",
+    "test:unit": "mocha tests/unit/*.test.js --exit"
   },
   "keywords": [
     "microservice",
