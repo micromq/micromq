@@ -1,10 +1,13 @@
 const qs = require('querystring');
 const parse = require('co-body');
+const typeis = require('type-is');
 
 module.exports.prepareRequest = async (req, res, next) => {
   const [, queryString] = req.url.split('?');
   const query = qs.decode(queryString);
-  const body = await parse.json(req);
+  const istext = typeis(req, ['urlencoded', 'multipart']);
+  const limit = req._options.fileUploadLimit || '1mb';
+  const body = (!!istext === false) ? await parse.json(req) : await parse.form(req, {limit: limit});
 
   req.path = (req.originalUrl || req.url).split('?')[0];
   req.method = req.method.toLowerCase();

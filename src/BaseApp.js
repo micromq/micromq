@@ -17,6 +17,7 @@ class BaseApp extends RabbitApp {
   _next(req, res, idx = -1) {
     if (this._middlewares.length > idx + 1) {
       const { match, fn } = this._middlewares[idx + 1];
+      req._options = this._options;
 
       return match(req)
         ? fn(req, res)

@@ -35,6 +35,7 @@ $ PORT=3000 npm test
     - `url` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> RabbitMQ connection url.
   - `requests` <[?Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>
     - `timeout` <[?number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type)> Timeout for each request (in ms).
+  - `fileUploadLimit` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> File upload limit. The default is 1mb.
 
 
 This method creates gateway.
@@ -50,6 +51,7 @@ const gateway = new Gateway({
   requests: {
     timeout: 5000,
   },
+  fileUploadLimit: '10mb',
 });
 ```
 
@@ -70,10 +72,10 @@ gateway.action('increase_balance', async (meta, res) => {
   if (!meta.amount || Number.isNaN(+meta.amount)) {
     res.status(400);
     res.json({ error: 'Bad data' });
-    
+
     return;
   }
-  
+
   await Users.updateOne({
     userId: meta.userId,
   }, {
@@ -150,7 +152,7 @@ app.start();
 - `name` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)> Event name
 - `...args` <...any> - Arguments
 
-This method emits application event. 
+This method emits application event.
 
 #### .enablePrometheus(endpoint, credentials)
 
@@ -158,7 +160,7 @@ This method emits application event.
 - `credentials` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Credentials for prometheus target
   - `user` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>
   - `password` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>
-  
+
 This method enables prometheus monitoring.
 
 ```js
@@ -303,7 +305,7 @@ app.start();
 - `credentials` <[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)> Credentials for prometheus target
   - `user` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>
   - `password` <[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type)>
-  
+
 This method enables prometheus monitoring.
 
 ```js
@@ -387,7 +389,7 @@ app.get('/users/me/info', async (req, res) => {
       userId: req.params.id,
     },
   });
-  
+
   // ask microservice action
   const { response } = await app.ask('balances', {
     server: {
@@ -397,7 +399,7 @@ app.get('/users/me/info', async (req, res) => {
       },
     },
   });
-  
+
   res.json({
     id: req.params.id,
     name: `${req.session.first_name} ${req.session.last_name}`,
