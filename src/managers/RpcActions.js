@@ -12,7 +12,7 @@ class RpcActions {
     const handler = this._actions.get(action);
 
     if (!handler) {
-      console.warn(`Action "${action}" not found`, message);
+      console.warn(`Action "${action}" not found`);
 
       return;
     }
